@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: true,
         },
+        points: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+        },
     }, {
         tableName: 'members',
         timestamps: false,

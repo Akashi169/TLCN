@@ -26,6 +26,23 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: UserRole.CUSTOMER,
         },
+        phone_number: {
+            type: DataTypes.STRING(20),
+            allowNull: true,
+        },
+        email: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+        },
+        status: {
+            type: DataTypes.ENUM('ACTIVE', 'LOCKED', 'SUSPENDED'),
+            allowNull: false,
+            defaultValue: 'ACTIVE',
+        },
+        last_login: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     }, {
         tableName: 'users',
         timestamps: false,
