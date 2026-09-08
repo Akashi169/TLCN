@@ -87,6 +87,8 @@ class ComputerController {
     } catch (error) {
       next(error);
     }
+  }
+
   async getHardwareSpecs(req, res, next) {
     try {
       const data = await computerService.getHardwareSpecs();
