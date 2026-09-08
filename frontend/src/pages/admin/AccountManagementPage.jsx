@@ -5,37 +5,50 @@ import Footer from '../../widgets/footer/Footer';
 
 // Member Service & FSD UI Components
 import memberService from '../../shared/api/member.service';
-import { MOCK_MEMBERS, MOCK_MEMBER_METRICS } from '../../features/members/model/mockMembersData';
+import { MOCK_MEMBER_METRICS } from '../../features/members/model/mockMembersData';
 import MemberKpiCards from '../../features/members/ui/MemberKpiCards';
 import MemberFilterBar from '../../features/members/ui/MemberFilterBar';
 import MemberBulkActionBar from '../../features/members/ui/MemberBulkActionBar';
 import MemberTable from '../../features/members/ui/MemberTable';
 import MemberPagination from '../../features/members/ui/MemberPagination';
 import CreateMemberModal from '../../features/members/ui/CreateMemberModal';
+import EditMemberModal from '../../features/members/ui/EditMemberModal';
+import MemberDetailModal from '../../features/members/ui/MemberDetailModal';
 
 /**
  * AccountManagementPage (Quản lý Hội viên Cyber)
  * Built with FSD Architecture, Clean Code & DRY Principles
  */
 export default function AccountManagementPage({ user, onLogout }) {
-  const [members, setMembers] = useState(MOCK_MEMBERS);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(MOCK_MEMBER_METRICS);
   const [searchQuery, setSearchQuery] = useState('');
   const [tierFilter, setTierFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedIds, setSelectedIds] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [viewingMember, setViewingMember] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Auto-fetch members from Backend Service on mount
-  useEffect(() => {
-    const fetchMemberData = async () => {
+  const fetchMemberData = async () => {
+    setLoading(true);
+    try {
       const data = await memberService.getMembers();
-      if (data && data.length > 0) {
+      if (data) {
         setMembers(data);
       }
-    };
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách hội viên:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMemberData();
   }, []);
 
@@ -46,8 +59,8 @@ export default function AccountManagementPage({ user, onLogout }) {
       const query = searchQuery.toLowerCase().trim();
       const matchSearch =
         !query ||
-        m.name.toLowerCase().includes(query) ||
-        m.uid.toLowerCase().includes(query) ||
+        (m.name && m.name.toLowerCase().includes(query)) ||
+        (m.uid && m.uid.toLowerCase().includes(query)) ||
         (m.email && m.email.toLowerCase().includes(query)) ||
         (m.phone && m.phone.includes(query)) ||
         (m.username && m.username.toLowerCase().includes(query));
@@ -57,16 +70,17 @@ export default function AccountManagementPage({ user, onLogout }) {
 
       // Status match
       let matchStatus = true;
+      const statusLower = (m.status || '').toLowerCase();
       if (statusFilter === 'playing-local') {
-        matchStatus = m.status === 'playing' && !m.stationDetail?.includes('Cloud');
-      } else if (statusFilter === 'playing-remote') {
-        matchStatus = m.status === 'playing' && m.stationDetail?.includes('Cloud');
+        matchStatus = statusLower === 'active' && m.stationCode;
       } else if (statusFilter === 'idle') {
-        matchStatus = m.status === 'idle';
+        matchStatus = statusLower === 'active' && !m.stationCode;
       } else if (statusFilter === 'offline') {
-        matchStatus = m.status === 'offline';
+        matchStatus = statusLower === 'active' && !m.stationCode;
       } else if (statusFilter === 'locked') {
-        matchStatus = m.status === 'locked';
+        matchStatus = statusLower === 'locked';
+      } else if (statusFilter === 'suspended') {
+        matchStatus = statusLower === 'suspended';
       }
 
       return matchSearch && matchTier && matchStatus;
@@ -88,65 +102,34 @@ export default function AccountManagementPage({ user, onLogout }) {
     }
   };
 
-  // Quick Action Handlers
-  const handleQuickDeposit = (id) => {
-    const member = members.find((m) => m.id === id);
-    const amountStr = window.prompt(`Nạp tiền cho hội viên ${member?.name} (VNĐ):`, '50000');
-    if (amountStr) {
-      const amount = parseInt(amountStr, 10);
-      if (!isNaN(amount) && amount > 0) {
-        setMembers((prev) =>
-          prev.map((m) =>
-            m.id === id
-              ? {
-                  ...m,
-                  balance: m.balance + amount,
-                  balanceNote: `~ ${((m.balance + amount) / 20000).toFixed(1)} giờ chơi`
-                }
-              : m
-          )
-        );
-        alert(`Đã nạp thành công ${amount.toLocaleString()} VNĐ cho ${member?.name}!`);
-      }
+  // Action: Xem chi tiết
+  const handleViewDetail = (member) => {
+    setViewingMember(member);
+  };
+
+  // Action: Mở modal sửa thông tin (Họ tên, SĐT, Email)
+  const handleEditInfoClick = (member) => {
+    setEditingMember(member);
+  };
+
+  // Submit sửa thông tin hồ sơ
+  const handleSaveInfo = async (memberId, updatedFields) => {
+    try {
+      await memberService.updateMemberInfo(memberId, updatedFields);
+      // Reload members after update
+      await fetchMemberData();
+    } catch (err) {
+      alert('Có lỗi xảy ra khi cập nhật thông tin hội viên');
     }
   };
 
-  const handleLockMember = (id) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              status: 'locked',
-              station: 'Khóa bởi Admin',
-              stationCode: null,
-              stationDetail: null,
-              balanceNote: 'Tài khoản đóng băng'
-            }
-          : m
-      )
-    );
-  };
-
-  const handleUnlockMember = (id) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              status: 'offline',
-              station: 'Máy trống',
-              balanceNote: `~ ${(m.balance / 20000).toFixed(1)} giờ chơi`
-            }
-          : m
-      )
-    );
-  };
-
-  const handleDeleteMember = (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa hội viên này khỏi hệ thống?')) {
-      setMembers((prev) => prev.filter((m) => m.id !== id));
-      setSelectedIds((prev) => prev.filter((item) => item !== id));
+  // Action: Đổi trạng thái tài khoản (ACTIVE / LOCKED / SUSPENDED)
+  const handleChangeStatus = async (memberId, newStatus) => {
+    try {
+      await memberService.updateAccountStatus(memberId, newStatus);
+      await fetchMemberData();
+    } catch (err) {
+      alert('Có lỗi xảy ra khi cập nhật trạng thái tài khoản');
     }
   };
 
@@ -156,34 +139,21 @@ export default function AccountManagementPage({ user, onLogout }) {
       uid: `UID-${Math.floor(10000 + Math.random() * 90000)}`,
       name: newMemberData.fullName,
       username: newMemberData.username,
-      tier: newMemberData.tier,
-      badge: null,
-      balance: Number(newMemberData.deposit) || 0,
-      balanceNote: `~ ${((Number(newMemberData.deposit) || 0) / 20000).toFixed(1)} giờ chơi`,
+      phone: newMemberData.phone || 'Chưa cập nhật',
+      email: newMemberData.email || 'Chưa cập nhật',
+      tier: newMemberData.tier || 'normal',
+      rankName: 'Đồng',
+      realBalance: Number(newMemberData.deposit) || 0,
+      bonusBalance: 0,
+      totalBalance: Number(newMemberData.deposit) || 0,
       pts: Math.floor((Number(newMemberData.deposit) || 0) / 1000),
-      status: 'offline',
-      station: 'Máy trống',
+      status: 'ACTIVE',
+      station: 'Chưa vào máy',
       stationCode: null,
-      stationDetail: null,
-      lastLoginTime: 'Vừa tạo',
-      lastLoginDetail: 'Mới đăng ký',
-      ipAddress: '192.168.1.100',
-      initials: newMemberData.fullName
-        ? newMemberData.fullName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2)
-        : 'NV'
+      lastLoginTime: 'Vừa đăng ký'
     };
 
     setMembers((prev) => [newMember, ...prev]);
-    setMetrics((prev) => ({
-      ...prev,
-      totalMembers: prev.totalMembers + 1,
-      monthCreated: prev.monthCreated + 1
-    }));
   };
 
   return (
@@ -224,7 +194,7 @@ export default function AccountManagementPage({ user, onLogout }) {
               onTierChange={setTierFilter}
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}
-              onOpenCreateModal={() => setIsModalOpen(true)}
+              onOpenCreateModal={() => setIsCreateModalOpen(true)}
             />
 
             {/* Bulk Action Bar */}
@@ -232,9 +202,7 @@ export default function AccountManagementPage({ user, onLogout }) {
               selectedCount={selectedIds.length}
               onAddHours={() => alert(`Cộng giờ cho ${selectedIds.length} hội viên`)}
               onLock={() => {
-                setMembers((prev) =>
-                  prev.map((m) => (selectedIds.includes(m.id) ? { ...m, status: 'locked' } : m))
-                );
+                selectedIds.forEach((id) => handleChangeStatus(id, 'LOCKED'));
                 setSelectedIds([]);
               }}
               onDelete={() => {
@@ -244,23 +212,29 @@ export default function AccountManagementPage({ user, onLogout }) {
             />
 
             {/* Data Table */}
-            <MemberTable
-              members={filteredMembers}
-              selectedIds={selectedIds}
-              onToggleSelect={handleToggleSelect}
-              onToggleSelectAll={handleToggleSelectAll}
-              onQuickDeposit={handleQuickDeposit}
-              onLock={handleLockMember}
-              onUnlock={handleUnlockMember}
-              onDelete={handleDeleteMember}
-            />
+            {loading ? (
+              <div className="w-full py-16 text-center text-slate-500 bg-white rounded-xl border border-slate-200">
+                <div className="inline-block w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+                <p className="text-xs font-bold">Đang tải dữ liệu hội viên từ cơ sở dữ liệu...</p>
+              </div>
+            ) : (
+              <MemberTable
+                members={filteredMembers}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onToggleSelectAll={handleToggleSelectAll}
+                onViewDetail={handleViewDetail}
+                onEditInfo={handleEditInfoClick}
+                onChangeStatus={handleChangeStatus}
+              />
+            )}
 
             {/* Pagination */}
             <MemberPagination
               currentPage={currentPage}
-              totalPages={342}
+              totalPages={Math.ceil(filteredMembers.length / pageSize) || 1}
               pageSize={pageSize}
-              totalItems={metrics.totalMembers}
+              totalItems={filteredMembers.length}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
             />
@@ -273,10 +247,26 @@ export default function AccountManagementPage({ user, onLogout }) {
 
       {/* Create Member Modal */}
       <CreateMemberModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateMember}
+      />
+
+      {/* Edit Member Profile Modal (Họ tên, SĐT, Email) */}
+      <EditMemberModal
+        isOpen={!!editingMember}
+        onClose={() => setEditingMember(null)}
+        member={editingMember}
+        onSubmit={handleSaveInfo}
+      />
+
+      {/* View Detail Member Profile Modal */}
+      <MemberDetailModal
+        isOpen={!!viewingMember}
+        onClose={() => setViewingMember(null)}
+        member={viewingMember}
       />
     </div>
   );
 }
+
