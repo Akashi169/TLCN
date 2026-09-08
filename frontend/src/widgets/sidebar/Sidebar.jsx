@@ -8,8 +8,8 @@ export default function Sidebar({ activeNav = 'grid', setActiveNav, bootromStatu
     const navItems = [
         { id: 'grid', label: 'Sơ Đồ Phòng Máy', icon: LayoutGrid, path: '/admin' },
         { id: 'members', label: 'Quản Lý Hội Viên', icon: UserCheck, path: '/admin/members' },
+        { id: 'hardware', label: 'Quản Lý Danh Sách Máy', icon: Cpu, path: '/admin/machines' },
         { id: 'billing', label: 'Nạp Giờ & Dịch Vụ F&B', icon: CreditCard },
-        { id: 'hardware', label: 'Giám Sát Phần Cứng', icon: Cpu },
         { id: 'games', label: 'Kho Game & BootROM', icon: Gamepad2 },
         { id: 'reports', label: 'Báo Cáo Doanh Thu', icon: BarChart3 },
     ];
