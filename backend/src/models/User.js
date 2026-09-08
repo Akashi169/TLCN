@@ -1,5 +1,6 @@
 // src/models/User.js
-// Đại diện cho bảng `users` - lớp cha của tất cả người dùng hệ thống
+const { UserRole } = require('../constants/enums');
+
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
         user_id: {
@@ -21,8 +22,9 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         role: {
-            type: DataTypes.ENUM('ADMIN', 'EMPLOYEE', 'MEMBER'),
+            type: DataTypes.ENUM(...Object.values(UserRole)),
             allowNull: false,
+            defaultValue: UserRole.CUSTOMER,
         },
     }, {
         tableName: 'users',
@@ -30,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     User.associate = (models) => {
-        // Quan hệ 1-1: User MEMBER sẽ có 1 bản ghi Member tương ứng
         User.hasOne(models.Member, { foreignKey: 'member_id', as: 'memberProfile' });
     };
 

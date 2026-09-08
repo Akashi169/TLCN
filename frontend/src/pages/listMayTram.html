@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>NEXUS Cyber Command</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "surface-container-lowest": "#ffffff",
+        "primary-container": "#007bb9",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#fdfcff",
+        "surface-container-highest": "#dae2fd",
+        "tertiary-fixed": "#ffddb8",
+        "primary-fixed": "#cce5ff",
+        "outline": "#707881",
+        "surface-container-high": "#e2e7ff",
+        "surface-container": "#eaedff",
+        "on-error-container": "#93000a",
+        "surface-bright": "#faf8ff",
+        "primary": "#006194",
+        "error": "#ba1a1a",
+        "secondary-fixed-dim": "#c0c1ff",
+        "on-tertiary-container": "#fffbff",
+        "tertiary-container": "#a36700",
+        "on-secondary": "#ffffff",
+        "on-secondary-fixed": "#07006c",
+        "surface-tint": "#006398",
+        "surface-container-low": "#f2f3ff",
+        "secondary": "#4648d4",
+        "on-tertiary-fixed-variant": "#653e00",
+        "on-error": "#ffffff",
+        "on-surface-variant": "#3f4850",
+        "on-primary-fixed": "#001d31",
+        "on-secondary-container": "#fffbff",
+        "tertiary-fixed-dim": "#ffb95f",
+        "surface-variant": "#dae2fd",
+        "primary-fixed-dim": "#93ccff",
+        "on-background": "#131b2e",
+        "on-surface": "#131b2e",
+        "secondary-container": "#6063ee",
+        "inverse-primary": "#93ccff",
+        "background": "#faf8ff",
+        "on-secondary-fixed-variant": "#2f2ebe",
+        "surface": "#faf8ff",
+        "surface-dim": "#d2d9f4",
+        "tertiary": "#825100",
+        "secondary-fixed": "#e1e0ff",
+        "error-container": "#ffdad6",
+        "on-primary-fixed-variant": "#004b73",
+        "outline-variant": "#bfc7d2",
+        "on-tertiary": "#ffffff",
+        "inverse-on-surface": "#eef0ff",
+        "on-tertiary-fixed": "#2a1700",
+        "inverse-surface": "#283044"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      "spacing": {
+        "space-xs": "0.25rem",
+        "space-sm": "0.5rem",
+        "sidebar-width": "17.5rem",
+        "space-base": "1rem",
+        "space-2xs": "0.125rem",
+        "command-bar-height": "4rem",
+        "space-lg": "1.5rem",
+        "gutter": "1rem",
+        "space-md": "0.75rem",
+        "space-2xl": "3rem",
+        "space-xl": "2rem"
+      },
+      "fontFamily": {
+        "headline-lg-mobile": [
+          "Plus Jakarta Sans"
+        ],
+        "headline-sm": [
+          "Plus Jakarta Sans"
+        ],
+        "display-xl-mobile": [
+          "Plus Jakarta Sans"
+        ],
+        "label-md": [
+          "JetBrains Mono"
+        ],
+        "label-xs": [
+          "JetBrains Mono"
+        ],
+        "body-md": [
+          "Plus Jakarta Sans"
+        ],
+        "display-xl": [
+          "Plus Jakarta Sans"
+        ],
+        "body-lg": [
+          "Plus Jakarta Sans"
+        ],
+        "title-md": [
+          "Plus Jakarta Sans"
+        ],
+        "body-sm": [
+          "Plus Jakarta Sans"
+        ],
+        "headline-md": [
+          "Plus Jakarta Sans"
+        ],
+        "label-sm": [
+          "JetBrains Mono"
+        ],
+        "headline-lg": [
+          "Plus Jakarta Sans"
+        ]
+      },
+      "fontSize": {
+        "headline-lg-mobile": [
+          "26px",
+          {
+            "lineHeight": "34px",
+            "letterSpacing": "-0.01em",
+            "fontWeight": "700"
+          }
+        ],
+        "headline-sm": [
+          "20px",
+          {
+            "lineHeight": "28px",
+            "letterSpacing": "-0.01em",
+            "fontWeight": "600"
+          }
+        ],
+        "display-xl-mobile": [
+          "36px",
+          {
+            "lineHeight": "44px",
+            "letterSpacing": "-0.02em",
+            "fontWeight": "800"
+          }
+        ],
+        "label-md": [
+          "13px",
+          {
+            "lineHeight": "18px",
+            "letterSpacing": "0.02em",
+            "fontWeight": "500"
+          }
+        ],
+        "label-xs": [
+          "10px",
+          {
+            "lineHeight": "14px",
+            "letterSpacing": "0.08em",
+            "fontWeight": "600"
+          }
+        ],
+        "body-md": [
+          "14px",
+          {
+            "lineHeight": "22px",
+            "fontWeight": "400"
+          }
+        ],
+        "display-xl": [
+          "48px",
+          {
+            "lineHeight": "56px",
+            "letterSpacing": "-0.03em",
+            "fontWeight": "800"
+          }
+        ],
+        "body-lg": [
+          "16px",
+          {
+            "lineHeight": "26px",
+            "fontWeight": "400"
+          }
+        ],
+        "title-md": [
+          "16px",
+          {
+            "lineHeight": "24px",
+            "letterSpacing": "-0.005em",
+            "fontWeight": "600"
+          }
+        ],
+        "body-sm": [
+          "12px",
+          {
+            "lineHeight": "18px",
+            "fontWeight": "400"
+          }
+        ],
+        "headline-md": [
+          "24px",
+          {
+            "lineHeight": "32px",
+            "letterSpacing": "-0.015em",
+            "fontWeight": "700"
+          }
+        ],
+        "label-sm": [
+          "11px",
+          {
+            "lineHeight": "16px",
+            "letterSpacing": "0.05em",
+            "fontWeight": "600"
+          }
+        ],
+        "headline-lg": [
+          "32px",
+          {
+            "lineHeight": "40px",
+            "letterSpacing": "-0.02em",
+            "fontWeight": "700"
+          }
+        ]
+      }
+    }
+  }
+}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-screen w-sidebar-width bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-command-bar-height flex items-center px-space-base gap-space-sm bg-surface-container-low/40"><div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_8px_rgba(0,97,148,0.35)]"><span class="material-symbols-outlined text-on-primary text-[20px]">sports_esports</span></div><div class="flex flex-col"><span class="font-title-md text-title-md text-on-surface font-bold tracking-tight leading-tight">NEXUS</span><span class="font-label-xs text-label-xs text-primary font-semibold uppercase tracking-wider">Cyber Command OS</span></div></div><div class="px-space-base py-space-sm"><div class="px-space-sm py-space-xs font-label-xs text-label-xs text-outline uppercase tracking-wider">Hạ Tầng Điều Hành</div></div><nav class="flex flex-col gap-space-2xs px-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(0,123,185,0.25)]"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="so-do-phong-may" href="#"><span class="material-symbols-outlined text-[19px]">grid_view</span><span class="font-body-md text-body-md">Sơ Đồ Phòng Máy</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="quan-ly-danh-sach-may" href="#"><span class="material-symbols-outlined text-[19px]">devices</span><span class="font-body-md text-body-md">Quản Lý Danh Sách Máy</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="quan-ly-hoi-vien" href="#"><span class="material-symbols-outlined text-[19px]">badge</span><span class="font-body-md text-body-md">Quản Lý Hội Viên</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="nap-gio-dich-vu-fb" href="#"><span class="material-symbols-outlined text-[19px]">point_of_sale</span><span class="font-body-md text-body-md">Nạp Giờ &amp; Dịch Vụ F&amp;B</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="cau-hinh-phan-cung-game" href="#"><span class="material-symbols-outlined text-[19px]">memory</span><span class="font-body-md text-body-md">Cấu Hình &amp; BootROM</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="giam-sat-do-luong-phan-cung" href="#"><span class="material-symbols-outlined text-[19px]">speed</span><span class="font-body-md text-body-md">Giám Sát Telemetry</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="bao-cao-audit-log" href="#"><span class="material-symbols-outlined text-[19px]">receipt_long</span><span class="font-body-md text-body-md">Báo Cáo &amp; Audit Log</span></a></nav></div><div class="p-space-base m-space-sm bg-surface-container-low rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.03)] flex flex-col gap-space-xs"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span><span class="font-label-xs text-label-xs text-on-surface font-bold uppercase tracking-wider">BootROM SAN 10G</span></div><span class="font-label-xs text-label-xs text-primary font-bold">ONLINE</span></div><div class="flex items-center justify-between text-on-surface-variant font-label-xs text-label-xs"><span>Độ Trễ Phản Hồi:</span><span class="font-label-md text-label-md text-on-surface font-semibold">0.28 ms</span></div><div class="flex items-center justify-between text-on-surface-variant font-label-xs text-label-xs"><span>Sức Khỏe Diskless:</span><span class="font-label-md text-label-md text-primary font-semibold">99.8%</span></div><div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden mt-space-2xs"><div class="bg-primary h-full rounded-full" style="width: 99.8%"></div></div></div></aside><div class="pl-sidebar-width"><header class="fixed top-0 left-sidebar-width right-0 h-command-bar-height bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg select-none"><div class="flex items-center gap-space-sm overflow-x-auto py-space-xs"><div class="flex items-center gap-space-xs px-space-sm py-space-2xs bg-surface-container-low rounded-lg text-on-surface font-label-sm text-label-sm"><span class="text-on-surface-variant">Tổng:</span><span class="font-bold font-label-md text-label-md text-on-surface">120 Máy</span></div><div class="flex items-center gap-space-xs px-space-sm py-space-2xs bg-primary-fixed/50 text-on-primary-fixed rounded-lg font-label-sm text-label-sm"><span class="h-2 w-2 rounded-full bg-primary"></span><span class="font-medium">Đang chơi:</span><span class="font-bold font-label-md text-label-md">84</span></div><div class="flex items-center gap-space-xs px-space-sm py-space-2xs bg-surface-container-low text-on-surface rounded-lg font-label-sm text-label-sm"><span class="h-2 w-2 rounded-full bg-secondary"></span><span class="font-medium">Sẵn sàng:</span><span class="font-bold font-label-md text-label-md text-secondary">28</span></div><div class="flex items-center gap-space-xs px-space-sm py-space-2xs bg-error-container/60 text-on-error-container rounded-lg font-label-sm text-label-sm"><span class="h-2 w-2 rounded-full bg-error"></span><span class="font-medium">Bảo trì:</span><span class="font-bold font-label-md text-label-md">8</span></div><div class="h-4 w-[1px] bg-outline-variant/50"></div><div class="flex items-center gap-space-xs px-space-sm py-space-2xs bg-tertiary-fixed/60 text-on-tertiary-fixed-variant rounded-lg font-label-sm text-label-sm"><span class="font-medium">Doanh thu ca:</span><span class="font-bold font-label-md text-label-md text-tertiary">14.850.000 đ</span></div></div><div class="flex items-center gap-space-md"><div class="relative hidden xl:flex items-center"><span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute left-3">search</span><input class="pl-9 pr-4 py-space-xs bg-surface-container-low rounded-lg text-body-sm font-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_rgba(0,123,185,0.4)] w-64 transition-all" placeholder="Tìm IP, Tên máy, Hội viên..." type="text"/></div><button class="relative w-9 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute -top-1 -right-1 bg-error text-on-error font-label-xs text-label-xs px-1.5 py-0.2 rounded-full font-bold shadow-sm">5</span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="flex flex-col text-right hidden sm:flex"><span class="font-title-md text-body-sm font-bold text-on-surface leading-tight">Quốc Huy</span><span class="font-label-xs text-label-xs text-primary font-medium">Ca Sáng (06:00 - 14:00)</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-command-bar-height bg-surface w-full min-h-screen px-space-lg py-space-base"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Breadcrumb & Page Header -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md">
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs font-label-xs text-label-xs text-outline uppercase tracking-wider">
+<span>Cơ Sở Hạ Tầng</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Phòng Máy &amp; Thiết Bị</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-semibold">Danh Sách Máy Trạm</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-extrabold flex items-center gap-space-sm">
+        Quản Lý Danh Sách Máy Trạm
+        <span class="bg-primary-fixed text-on-primary-fixed font-label-xs text-label-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Fleet v4.6</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+        Hệ thống giám sát, phân bổ phân khu phần cứng và điều phối 120 trạm máy BootROM / Cloud vGPU theo thời gian thực với độ trễ thấp.
+      </p>
+</div>
+<!-- Action Bar Right -->
+<div class="flex items-center gap-space-sm self-start lg:self-center flex-wrap">
+<button class="flex items-center gap-space-xs px-space-md py-2.5 bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-title-md text-body-sm font-semibold rounded-lg shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">download</span>
+<span>Xuất Báo Cáo</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2.5 bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-title-md text-body-sm font-semibold rounded-lg shadow-sm transition-all" id="syncBtn" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary transition-transform duration-500" id="syncIcon">sync</span>
+<span>Đồng Bộ BootROM</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-lg py-2.5 bg-primary hover:bg-primary-container text-on-primary font-title-md text-body-sm font-bold rounded-lg shadow-md transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Thêm Máy Mới</span>
+</button>
+</div>
+</div>
+<!-- KPI Summary Bar (5 Defined Statuses with Exact Soft Pastel Styling) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
+<!-- Card 1: Mint/Pastel Green -->
+<div class="bg-[#f0fdf4] p-space-base rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16a34a] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#16a34a]"></span>
+</span>
+<span class="font-title-md text-body-sm font-bold text-[#15803d]">Online</span>
+</div>
+<span class="font-label-xs text-label-xs font-bold text-[#166534] bg-[#dcfce7] px-2 py-0.5 rounded-full">23.3%</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-xl text-headline-lg font-extrabold text-[#14532d]">28</span>
+<span class="font-label-xs text-label-xs text-[#166534]">/ 120 máy</span>
+</div>
+<div class="font-body-sm text-body-sm text-[#166534] mt-1 font-medium">Sẵn sàng đón khách tức thì</div>
+</div>
+</div>
+<!-- Card 2: Light Blue -->
+<div class="bg-[#f0f9ff] p-space-base rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="h-2.5 w-2.5 rounded-full bg-[#0284c7]"></span>
+<span class="font-title-md text-body-sm font-bold text-[#0369a1]">Đang Sử Dụng</span>
+</div>
+<span class="font-label-xs text-label-xs font-bold text-[#075985] bg-[#e0f2fe] px-2 py-0.5 rounded-full">63.3%</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-xl text-headline-lg font-extrabold text-[#0c4a6e]">76</span>
+<span class="font-label-xs text-label-xs text-[#075985]">/ 120 máy</span>
+</div>
+<div class="font-body-sm text-body-sm text-[#075985] mt-1 font-medium">Phiên Local &amp; Cloud active</div>
+</div>
+</div>
+<!-- Card 3: Soft Purple -->
+<div class="bg-[#faf5ff] p-space-base rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="h-2.5 w-2.5 rounded-full bg-[#9333ea]"></span>
+<span class="font-title-md text-body-sm font-bold text-[#7e22ce]">Đặt Trước</span>
+</div>
+<span class="font-label-xs text-label-xs font-bold text-[#6b21a8] bg-[#f3e8ff] px-2 py-0.5 rounded-full">5.0%</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-xl text-headline-lg font-extrabold text-[#581c87]">06</span>
+<span class="font-label-xs text-label-xs text-[#6b21a8]">/ 120 máy</span>
+</div>
+<div class="font-body-sm text-body-sm text-[#6b21a8] mt-1 font-medium">Khách đặt lịch qua App</div>
+</div>
+</div>
+<!-- Card 4: Soft Coral/Red -->
+<div class="bg-[#fff1f2] p-space-base rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="h-2.5 w-2.5 rounded-full bg-[#e11d48]"></span>
+<span class="font-title-md text-body-sm font-bold text-[#be123c]">Bảo Trì</span>
+</div>
+<span class="font-label-xs text-label-xs font-bold text-[#9f1239] bg-[#ffe4e6] px-2 py-0.5 rounded-full">4.2%</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-xl text-headline-lg font-extrabold text-[#881337]">05</span>
+<span class="font-label-xs text-label-xs text-[#9f1239]">/ 120 máy</span>
+</div>
+<div class="font-body-sm text-body-sm text-[#9f1239] mt-1 font-medium">Lỗi switch LAN &amp; GPU test</div>
+</div>
+</div>
+<!-- Card 5: Light Gray -->
+<div class="bg-[#f8fafc] p-space-base rounded-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="h-2.5 w-2.5 rounded-full bg-[#64748b]"></span>
+<span class="font-title-md text-body-sm font-bold text-[#475569]">Offline</span>
+</div>
+<span class="font-label-xs text-label-xs font-bold text-[#334155] bg-[#e2e8f0] px-2 py-0.5 rounded-full">4.2%</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-xl text-headline-lg font-extrabold text-[#1e293b]">05</span>
+<span class="font-label-xs text-label-xs text-[#475569]">/ 120 máy</span>
+</div>
+<div class="font-body-sm text-body-sm text-[#475569] mt-1 font-medium">Ngắt điện / Tắt nguồn trạm</div>
+</div>
+</div>
+</div>
+<!-- Filter & Control Toolbar -->
+<div class="flex flex-col gap-space-sm bg-surface-container-lowest p-space-base rounded-xl shadow-sm">
+<div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<!-- Left Filters -->
+<div class="flex items-center gap-space-sm flex-wrap flex-1">
+<!-- Search -->
+<div class="relative flex-1 min-w-[280px] max-w-lg">
+<span class="material-symbols-outlined text-[18px] text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+<input class="w-full pl-10 pr-12 py-2.5 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_rgba(0,97,148,0.25)] transition-all" id="filterSearch" placeholder="Tìm PC ID, MAC, IP, tên khách hoặc game đang chơi..." type="text"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 font-label-xs text-label-xs text-outline px-1.5 py-0.5 bg-surface-container rounded pointer-events-none">⌘K</span>
+</div>
+<!-- Zone Dropdown -->
+<div class="relative">
+<select class="appearance-none pl-3.5 pr-8 py-2.5 bg-surface-container-low text-on-surface font-title-md text-body-sm font-medium rounded-lg focus:outline-none focus:bg-surface-container-lowest cursor-pointer transition-all" id="zoneFilter">
+<option value="all">Tất cả phân khu (All Zones)</option>
+<option value="zone-1">Zone 1: Esports Pro Arena</option>
+<option value="zone-2">Zone 2: VIP Gaming Suite</option>
+<option value="zone-3">Zone 3: Tiêu Chuẩn Combat</option>
+<option value="zone-4">Zone 4: Stream Studio</option>
+<option value="zone-5">Zone 5: Cloud Remote Nodes</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">arrow_drop_down</span>
+</div>
+<!-- Status Filter -->
+<div class="relative">
+<select class="appearance-none pl-3.5 pr-8 py-2.5 bg-surface-container-low text-on-surface font-title-md text-body-sm font-medium rounded-lg focus:outline-none focus:bg-surface-container-lowest cursor-pointer transition-all" id="statusFilter">
+<option value="all">Tất cả trạng thái (All Statuses)</option>
+<option value="online">🟢 Online (Sẵn sàng)</option>
+<option value="in-use">🔵 Đang sử dụng (In Use)</option>
+<option value="reserved">🟣 Đặt trước (Reserved)</option>
+<option value="maintenance">🔴 Bảo trì (Maintenance)</option>
+<option value="offline">⚪ Offline (Tắt nguồn)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">arrow_drop_down</span>
+</div>
+<!-- Hardware Filter -->
+<div class="relative">
+<select class="appearance-none pl-3.5 pr-8 py-2.5 bg-surface-container-low text-on-surface font-title-md text-body-sm font-medium rounded-lg focus:outline-none focus:bg-surface-container-lowest cursor-pointer transition-all">
+<option value="all">Cấu hình: Tất cả GPU</option>
+<option value="rtx-4090">GeForce RTX 4090 (24GB)</option>
+<option value="rtx-4080">GeForce RTX 4080 (16GB)</option>
+<option value="rtx-4070ti">RTX 4070 Ti Super (16GB)</option>
+<option value="rtx-4060">GeForce RTX 4060 (8GB)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-outline absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<!-- Right View & Quick Toggles -->
+<div class="flex items-center gap-space-xs self-end xl:self-center">
+<div class="flex items-center bg-surface-container-low p-1 rounded-lg">
+<button class="px-2.5 py-1.5 rounded-md bg-surface-container-lowest text-primary shadow-sm flex items-center gap-1 font-label-xs text-label-xs font-bold" title="Xem dạng bảng chi tiết" type="button">
+<span class="material-symbols-outlined text-[16px]">view_list</span>
+<span>Bảng</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-md text-on-surface-variant hover:text-on-surface flex items-center gap-1 font-label-xs text-label-xs font-semibold" title="Xem dạng lưới phòng" type="button">
+<span class="material-symbols-outlined text-[16px]">grid_view</span>
+<span>Lưới</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bulk Action Strip (Appears when items are selected) -->
+<div class="hidden flex items-center justify-between px-space-base py-space-xs bg-primary-fixed/40 rounded-lg" id="bulkActionBar">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span class="font-title-md text-body-sm font-bold text-on-primary-fixed" id="bulkCounter">Đã chọn 2 máy trạm</span>
+</div>
+<div class="flex items-center gap-space-xs flex-wrap">
+<button class="px-space-sm py-1 bg-surface-container-lowest text-on-surface hover:bg-surface-container-high rounded text-label-xs font-label-xs font-bold transition-all flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary">restart_alt</span> Khởi Động Lại (Reboot)
+        </button>
+<button class="px-space-sm py-1 bg-surface-container-lowest text-on-surface hover:bg-surface-container-high rounded text-label-xs font-label-xs font-bold transition-all flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[14px] text-tertiary">build</span> Chuyển Bảo Trì
+        </button>
+<button class="px-space-sm py-1 bg-surface-container-lowest text-on-surface hover:bg-surface-container-high rounded text-label-xs font-label-xs font-bold transition-all flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[14px] text-secondary">label</span> Gán Zone Mới
+        </button>
+<button class="px-space-sm py-1 bg-error-container text-on-error-container hover:bg-error hover:text-on-error rounded text-label-xs font-label-xs font-bold transition-all flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[14px]">delete</span> Xóa Khỏi Hệ Thống
+        </button>
+<button class="text-outline hover:text-on-surface text-label-xs font-label-xs font-medium ml-2 underline" id="clearSelectionBtn" type="button">Hủy chọn</button>
+</div>
+</div>
+</div>
+<!-- Comprehensive Data Table -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse" id="machineFleetTable">
+<thead>
+<tr class="bg-surface-container-low/60 text-outline font-label-xs text-label-xs uppercase tracking-wider select-none">
+<th class="w-12 py-3 px-4 text-center">
+<input class="rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" id="selectAllCheckbox" type="checkbox"/>
+</th>
+<th class="py-3 px-4 font-bold">PC ID / Địa Chỉ IP</th>
+<th class="py-3 px-4 font-bold">Phân Khu (Zone)</th>
+<th class="py-3 px-4 font-bold">Cấu Hình Phần Cứng &amp; BootROM</th>
+<th class="py-3 px-4 font-bold">Người Dùng / Phiên Hoạt Động</th>
+<th class="py-3 px-4 font-bold text-center">Trạng Thái</th>
+<th class="py-3 px-4 font-bold text-right pr-6">Hành Động</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/60 font-body-md text-body-md text-on-surface">
+<!-- Row 1: VIP-07 (In Use) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="in-use" data-zone="zone-2">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  07
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">VIP-07</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                    192.168.1.107 • Port #7
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-tertiary">hotel_class</span>
+                Zone 2: VIP Suite
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i7-14700KF</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-fixed/60 text-on-primary-fixed rounded font-bold">RTX 4070 Ti Super 16GB</span>
+<span class="font-label-xs text-label-xs text-outline">32GB DDR5</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                  BootImage: Win11-Pro-Cyber-v25.02 (Cache: 0.18ms)
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-on-primary text-xs">
+                  NM
+                </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-body-sm font-bold text-on-surface">Nguyễn Văn Nam</span>
+<span class="bg-[#fffbeb] text-[#b45309] font-label-xs text-label-xs px-1.5 py-0.2 rounded font-bold">VIP Gold</span>
+</div>
+<div class="flex items-center gap-2 font-label-xs text-label-xs text-outline">
+<span class="text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">sports_esports</span> Valorant Ranked
+                    </span>
+<span>•</span>
+<span>02h 15m / 04h 30m</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#0284c7]"></span>
+                Đang sử dụng
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" title="Xem màn hình từ xa (Live Mirror)" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" title="Chỉnh sửa thông số / Cấu hình" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" title="Hủy đăng ký / Xóa máy" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" title="Tác vụ nâng cao" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: ESP-01 (Online - Mint) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="online" data-zone="zone-1">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  01
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">ESP-01</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-[#16a34a]"></span>
+                    192.168.1.10 • 10Gbps Fiber
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-primary">military_tech</span>
+                Zone 1: Esports Arena
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i9-14900K</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-fixed/60 text-on-primary-fixed rounded font-bold">RTX 4080 16GB</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-[#fef3c7] text-[#92400e] rounded font-bold">ROG 360Hz</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                  BootImage: Win11-Esports-Tournament-v3
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-xs text-[#15803d]">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold">Sẵn sàng nạp khách</span>
+<span class="font-label-xs text-label-xs text-outline">Đã vệ sinh gear lúc 11:20</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0fdf4] text-[#15803d] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#16a34a]"></span>
+                Online (Sẵn sàng)
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" title="Xem màn hình" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" title="Sửa thông số" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" title="Xóa máy" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: ESP-04 (Reserved - Purple) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="reserved" data-zone="zone-1">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  04
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">ESP-04</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-[#9333ea]"></span>
+                    192.168.1.14 • Port #14
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-primary">military_tech</span>
+                Zone 1: Esports Arena
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i9-14900K</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-fixed/60 text-on-primary-fixed rounded font-bold">RTX 4080 16GB</span>
+<span class="font-label-xs text-label-xs text-outline">32GB DDR5</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                  BootImage: Win11-Esports-Tournament-v3
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-[#f3e8ff] text-[#7e22ce] flex items-center justify-center font-bold text-xs">
+                  HL
+                </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-body-sm font-bold text-on-surface">Hoàng Lâm</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-xs text-label-xs px-1.5 py-0.2 rounded font-bold">Team Scrim</span>
+</div>
+<div class="font-label-xs text-label-xs text-[#7e22ce] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">schedule</span> Bắt đầu: 14:30 chiều nay (Giữ chỗ 4h)
+                  </div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#faf5ff] text-[#7e22ce] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#9333ea]"></span>
+                Đặt trước
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: ST-18 (Maintenance - Coral/Red) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="maintenance" data-zone="zone-3">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  18
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">ST-18</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-[#e11d48]"></span>
+                    192.168.2.18 • Port Switch #04
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-outline">dns</span>
+                Zone 3: Tiêu Chuẩn
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i5-13400F</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high text-on-surface rounded font-bold">RTX 4060 8GB</span>
+<span class="font-label-xs text-label-xs text-outline">16GB DDR4</span>
+</div>
+<div class="font-label-xs text-label-xs text-error font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                  SAN Read Drop: Rớt gói tin PXE boot
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-xs text-[#be123c]">
+<span class="material-symbols-outlined text-[18px]">build</span>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold">Đang kiểm tra phần cứng</span>
+<span class="font-label-xs text-label-xs text-outline">Lỗi Driver vGPU / Cáp LAN cổng #4</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#fff1f2] text-[#be123c] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#e11d48]"></span>
+                Bảo trì
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: ST-22 (Offline - Gray) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="offline" data-zone="zone-3">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline font-label-md text-label-md font-bold">
+                  22
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">ST-22</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-[#64748b]"></span>
+                    192.168.2.22 • Không phản hồi
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-outline">dns</span>
+                Zone 3: Tiêu Chuẩn
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md opacity-70">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface">i5-13400F</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface">RTX 4060 8GB</span>
+<span class="font-label-xs text-label-xs text-outline">16GB DDR4</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline">
+                  Trạng thái nguồn: Power Off
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-xs text-[#475569]">
+<span class="material-symbols-outlined text-[18px]">power_off</span>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold">Tắt nguồn</span>
+<span class="font-label-xs text-label-xs text-outline">Tắt lúc 04:12 sáng (Hết ca đêm)</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f8fafc] text-[#475569] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#64748b]"></span>
+                Offline
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: STR-02 (In Use - Stream Studio) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="in-use" data-zone="zone-4">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  02
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">STR-02</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                    192.168.4.12 • Dedicated Line
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-secondary">videocam</span>
+                Zone 4: Stream Studio
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i9-14900K</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-container text-on-primary-container rounded font-bold">RTX 4090 24GB</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-[#fef3c7] text-[#92400e] rounded font-bold">Cam 4K + GoXLR</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                  BootImage: Win11-Creator-OBS-v25
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-xs">
+                  LN
+                </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-body-sm font-bold text-on-surface">LinhNhiLive</span>
+<span class="bg-error-container text-on-error-container font-label-xs text-label-xs px-1.5 py-0.2 rounded font-bold flex items-center gap-0.5">
+<span class="h-1.5 w-1.5 rounded-full bg-error"></span> LIVE
+                    </span>
+</div>
+<div class="flex items-center gap-2 font-label-xs text-label-xs text-outline">
+<span class="text-secondary font-semibold">OBS 4K Stream • TikTok/FB</span>
+<span>•</span>
+<span>03h 10m (Gói Creator)</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#0284c7]"></span>
+                Đang sử dụng
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7: CLOUD-08 (In Use - Cloud Nodes) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="in-use" data-zone="zone-5">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  08
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">CLOUD-08</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                    10.10.10.108 • vGPU Slice 02
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-primary">cloud_sync</span>
+                Zone 5: Cloud Nodes
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">Dual AMD EPYC</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-fixed/60 text-on-primary-fixed rounded font-bold">RTX 4090 Cloud vGPU</span>
+<span class="font-label-xs text-label-xs text-outline">128GB ECC</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">speed</span>
+                  WebRTC Latency: 1.1ms • AV1 Encode
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">
+                  CR
+                </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-body-sm font-bold text-on-surface">Khách App Remote #884</span>
+<span class="bg-primary-fixed text-on-primary-fixed font-label-xs text-label-xs px-1.5 py-0.2 rounded font-bold">PWA Session</span>
+</div>
+<div class="flex items-center gap-2 font-label-xs text-label-xs text-outline">
+<span class="text-primary font-semibold">Cyberpunk 2077 RT Overdrive</span>
+<span>•</span>
+<span>00h 54m</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#0284c7]"></span>
+                Đang sử dụng
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 8: VIP-12 (Online - Mint) -->
+<tr class="hover:bg-surface-container-low/40 transition-colors group" data-status="online" data-zone="zone-2">
+<td class="py-4 px-4 text-center">
+<input class="row-checkbox rounded w-4 h-4 text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary font-label-md text-label-md font-bold">
+                  12
+                </div>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold text-on-surface">VIP-12</span>
+<span class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-[#16a34a]"></span>
+                    192.168.1.112 • Port #12
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container text-on-surface font-title-md text-body-sm font-semibold rounded-md">
+<span class="material-symbols-outlined text-[15px] text-tertiary">hotel_class</span>
+                Zone 2: VIP Suite
+              </span>
+</td>
+<td class="py-4 px-4">
+<div class="flex flex-col gap-1 max-w-md">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-surface-container-high rounded text-on-surface font-semibold">i7-14700KF</span>
+<span class="font-label-xs text-label-xs px-1.5 py-0.5 bg-primary-fixed/60 text-on-primary-fixed rounded font-bold">RTX 4070 Ti Super 16GB</span>
+<span class="font-label-xs text-label-xs text-outline">32GB DDR5</span>
+</div>
+<div class="font-label-xs text-label-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hard_drive</span>
+                  BootImage: Win11-Pro-Cyber-v25.02
+                </div>
+</div>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-space-xs text-[#15803d]">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-title-md text-body-sm font-bold">Sẵn sàng đón khách</span>
+<span class="font-label-xs text-label-xs text-outline">Phòng VIP đơn, ghế bọc da cao cấp</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0fdf4] text-[#15803d] rounded-full font-label-xs text-label-xs font-bold">
+<span class="h-2 w-2 rounded-full bg-[#16a34a]"></span>
+                Online (Sẵn sàng)
+              </span>
+</td>
+<td class="py-4 px-4 text-right pr-6">
+<div class="flex items-center justify-end gap-1">
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-secondary hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container/50 flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer & Pagination -->
+<div class="px-space-base py-space-sm bg-surface-container-low/50 flex flex-col md:flex-row items-center justify-between gap-space-sm font-body-sm text-body-sm text-on-surface-variant select-none">
+<div class="flex items-center gap-space-md">
+<span>Hiển thị <strong class="text-on-surface font-semibold">1 - 8</strong> của <strong class="text-on-surface font-semibold">120</strong> máy trạm</span>
+<div class="hidden sm:flex items-center gap-space-xs text-outline font-label-xs text-label-xs">
+<span>|</span>
+<span id="selectedRowsLabel">Đang chọn 0 / 120 máy</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<!-- Rows per page -->
+<div class="flex items-center gap-space-xs">
+<span class="text-outline text-label-xs font-label-xs">Hiển thị mỗi trang:</span>
+<select class="appearance-none bg-surface-container-lowest px-2 py-1 rounded border-0 text-body-sm font-title-md font-semibold text-on-surface focus:outline-none shadow-sm cursor-pointer">
+<option>10</option>
+<option>25</option>
+<option>50</option>
+<option>100</option>
+</select>
+</div>
+<!-- Pagination Controls -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-outline hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center disabled:opacity-40 transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-bold flex items-center justify-center shadow-sm" type="button">
+            1
+          </button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm font-semibold flex items-center justify-center transition-colors" type="button">
+            2
+          </button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm font-semibold flex items-center justify-center transition-colors" type="button">
+            3
+          </button>
+<span class="px-1 text-outline font-label-xs">...</span>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm font-semibold flex items-center justify-center transition-colors" type="button">
+            15
+          </button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const bulkActionBar = document.getElementById('bulkActionBar');
+    const bulkCounter = document.getElementById('bulkCounter');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    const selectedRowsLabel = document.getElementById('selectedRowsLabel');
+
+    function updateSelectionState() {
+      const checkedBoxes = Array.from(rowCheckboxes).filter(cb => cb.checked);
+      const count = checkedBoxes.length;
+
+      if (count > 0) {
+        bulkActionBar.classList.remove('hidden');
+        bulkCounter.textContent = `Đã chọn ${count} máy trạm`;
+        selectedRowsLabel.textContent = `Đang chọn ${count} / 120 máy`;
+        selectedRowsLabel.classList.add('text-primary', 'font-bold');
+      } else {
+        bulkActionBar.classList.add('hidden');
+        selectedRowsLabel.textContent = `Đang chọn 0 / 120 máy`;
+        selectedRowsLabel.classList.remove('text-primary', 'font-bold');
+      }
+
+      selectAllCheckbox.checked = count === rowCheckboxes.length && count > 0;
+      selectAllCheckbox.indeterminate = count > 0 && count < rowCheckboxes.length;
+    }
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', () => {
+        rowCheckboxes.forEach(cb => {
+          cb.checked = selectAllCheckbox.checked;
+        });
+        updateSelectionState();
+      });
+    }
+
+    rowCheckboxes.forEach(cb => {
+      cb.addEventListener('change', updateSelectionState);
+    });
+
+    if (clearSelectionBtn) {
+      clearSelectionBtn.addEventListener('click', () => {
+        rowCheckboxes.forEach(cb => cb.checked = false);
+        if (selectAllCheckbox) {
+          selectAllCheckbox.checked = false;
+          selectAllCheckbox.indeterminate = false;
+        }
+        updateSelectionState();
+      });
+    }
+
+    // Interactive Sync Button
+    const syncBtn = document.getElementById('syncBtn');
+    const syncIcon = document.getElementById('syncIcon');
+    if (syncBtn && syncIcon) {
+      syncBtn.addEventListener('click', () => {
+        syncIcon.classList.add('animate-spin');
+        syncBtn.classList.add('opacity-75');
+        setTimeout(() => {
+          syncIcon.classList.remove('animate-spin');
+          syncBtn.classList.remove('opacity-75');
+        }, 1200);
+      });
+    }
+
+    // Client-side filtering simulation
+    const searchInput = document.getElementById('filterSearch');
+    const statusSelect = document.getElementById('statusFilter');
+    const zoneSelect = document.getElementById('zoneFilter');
+    const tableRows = document.querySelectorAll('#machineFleetTable tbody tr');
+
+    function filterTable() {
+      const query = (searchInput ? searchInput.value : '').toLowerCase();
+      const statusVal = statusSelect ? statusSelect.value : 'all';
+      const zoneVal = zoneSelect ? zoneSelect.value : 'all';
+
+      tableRows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const rowStatus = row.getAttribute('data-status');
+        const rowZone = row.getAttribute('data-zone');
+
+        const matchesQuery = !query || text.includes(query);
+        const matchesStatus = statusVal === 'all' || rowStatus === statusVal;
+        const matchesZone = zoneVal === 'all' || rowZone === zoneVal;
+
+        if (matchesQuery && matchesStatus && matchesZone) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (statusSelect) statusSelect.addEventListener('change', filterTable);
+    if (zoneSelect) zoneSelect.addEventListener('change', filterTable);
+  })();
+</script></main></div></body></html>

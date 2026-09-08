@@ -1,8 +1,15 @@
+// src/models/ServiceOrder.js
+const { OrderStatus } = require('../constants/enums');
+
 module.exports = (sequelize, DataTypes) => {
     const ServiceOrder = sequelize.define('ServiceOrder', {
         order_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-        status: { type: DataTypes.STRING(50), allowNull: false },
+        status: { 
+            type: DataTypes.ENUM(...Object.values(OrderStatus)), 
+            allowNull: false,
+            defaultValue: OrderStatus.PENDING 
+        },
         member_id: { type: DataTypes.INTEGER, allowNull: false },
         session_id: { type: DataTypes.INTEGER }
     }, { tableName: 'service_order', timestamps: false });
@@ -13,5 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         ServiceOrder.hasMany(models.ServiceOrderItem, { foreignKey: 'order_id' });
         ServiceOrder.hasMany(models.FinancialTransaction, { foreignKey: 'order_id' });
     };
+
     return ServiceOrder;
 };
