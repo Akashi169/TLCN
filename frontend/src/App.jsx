@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './shared/context/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AccountManagementPage from './pages/admin/AccountManagementPage';
+import MachineManagementPage from './pages/admin/MachineManagementPage';
 import StaffDashboardPage from './pages/staff/StaffDashboardPage';
 import CustomerDashboardPage from './pages/customer/CustomerDashboardPage';
 
@@ -87,6 +88,11 @@ const AccountMembersWrapper = () => {
   return <AccountManagementPage user={currentUser} onLogout={logout} />;
 };
 
+const MachineManagementWrapper = () => {
+  const { currentUser, logout } = useAuth();
+  return <MachineManagementPage user={currentUser} onLogout={logout} />;
+};
+
 const StaffWrapper = () => {
   const { currentUser, logout } = useAuth();
   return <StaffDashboardPage user={currentUser} onLogout={logout} />;
@@ -111,6 +117,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AccountMembersWrapper />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/machines"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <MachineManagementWrapper />
               </ProtectedRoute>
             }
           />

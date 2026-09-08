@@ -11,6 +11,7 @@ const seedData = require('./src/utils/seeder');
 const authRoutes = require('./src/routes/authRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const memberRoutes = require('./src/routes/memberRoutes');
+const computerRoutes = require('./src/routes/computerRoutes');
 
 const errorHandler = require('./src/middleware/errorHandler');
 
@@ -30,6 +31,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/computers', computerRoutes);
 
 // Centralized Error Handler
 app.use(errorHandler);
