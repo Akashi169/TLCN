@@ -25,12 +25,17 @@ class AuthService {
             throw new Error('Tên đăng nhập hoặc mật khẩu không chính xác.');
         }
 
-        // Kiếm tra mật khẩu (hỗ trợ cả bcrypt hash và so sánh chuỗi nếu mock data chưa hash)
+        // Kiểm tra mật khẩu (hỗ trợ cả bcrypt hash và tự động mã hóa lại nếu DB chứa plain-text cũ)
         let isPasswordValid = false;
         if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
             isPasswordValid = bcrypt.compareSync(password, user.password);
         } else {
             isPasswordValid = (user.password === password);
+            if (isPasswordValid) {
+                // Tự động nâng cấp mã hóa bcrypt cho tài khoản cũ trong DB
+                user.password = bcrypt.hashSync(password, 10);
+                await user.save();
+            }
         }
 
         if (!isPasswordValid) {

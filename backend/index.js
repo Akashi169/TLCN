@@ -9,6 +9,10 @@ const seedData = require('./src/utils/seeder');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const memberRoutes = require('./src/routes/memberRoutes');
+
+const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,18 +23,23 @@ app.use(express.json());
 
 // Basic Route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to NEXUS API!' });
+  res.json({ status: 'success', message: 'Welcome to NEXUS Cloud Cyber OS API!' });
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/members', memberRoutes);
 
-// ĐỒNG BỘ DATABASE RỒI MỚI CHẠY SERVER
-db.sequelize.sync({ alter: true })
+// Centralized Error Handler
+app.use(errorHandler);
+
+// ĐỒNG BỘ DATABASE & BẬT SERVER
+db.sequelize.sync()
   .then(async () => {
-    console.log('✅ Database đã được đồng bộ cấu trúc thành công!');
+    console.log('✅ Kết nối & Đồng bộ cấu trúc Database thành công!');
 
-    // Chạy seeder nạp dữ liệu mẫu
+    // Chạy seeder nạp dữ liệu mẫu nếu chưa có
     await seedData(db);
 
     // Bật server

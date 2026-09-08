@@ -1,0 +1,72 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LayoutGrid, UserCheck, CreditCard, Cpu, Gamepad2, BarChart3, Settings } from 'lucide-react';
+
+export default function Sidebar({ activeNav = 'grid', setActiveNav, bootromStatus = 'ONLINE' }) {
+    const navigate = useNavigate();
+
+    const navItems = [
+        { id: 'grid', label: 'Sơ Đồ Phòng Máy', icon: LayoutGrid, path: '/admin' },
+        { id: 'members', label: 'Quản Lý Hội Viên', icon: UserCheck, path: '/admin/members' },
+        { id: 'billing', label: 'Nạp Giờ & Dịch Vụ F&B', icon: CreditCard },
+        { id: 'hardware', label: 'Giám Sát Phần Cứng', icon: Cpu },
+        { id: 'games', label: 'Kho Game & BootROM', icon: Gamepad2 },
+        { id: 'reports', label: 'Báo Cáo Doanh Thu', icon: BarChart3 },
+    ];
+
+    const handleNavClick = (item, e) => {
+        e.preventDefault();
+        if (setActiveNav) setActiveNav(item.id);
+        if (item.path) {
+            navigate(item.path);
+        }
+    };
+
+    return (
+        <aside className="fixed left-0 top-0 h-full w-[240px] bg-white border-r border-slate-200/80 z-30 flex flex-col pt-16 pb-4">
+            <div className="px-5 py-3">
+                <span className="font-mono text-[10px] tracking-wider uppercase text-slate-400 font-semibold">ĐIỀU HÀNH & PHÂN KHU</span>
+            </div>
+            <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+                {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = (activeNav || 'grid') === item.id;
+                    return (
+                        <a
+                            key={item.id}
+                            href={item.path || '#'}
+                            onClick={(e) => handleNavClick(item, e)}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                                isActive
+                                    ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/60 shadow-xs'
+                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                        >
+                            <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                            <span>{item.label}</span>
+                        </a>
+                    );
+                })}
+            </nav>
+
+            <div className="px-3 pt-3 border-t border-slate-100 space-y-2">
+                <a
+                    href="#"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium text-sm transition-all"
+                >
+                    <Settings className="w-5 h-5 text-slate-400 shrink-0" />
+                    <span>Cấu Hình Hệ Thống</span>
+                </a>
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="font-mono text-[11px] text-slate-600 font-medium uppercase">BootROM Host</span>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.5 rounded">
+                        {bootromStatus}
+                    </span>
+                </div>
+            </div>
+        </aside>
+    );
+}
