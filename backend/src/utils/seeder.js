@@ -71,31 +71,177 @@ const seedData = async (db) => {
       ]);
     }
 
-    // 5. Seed Computers / Fleet Machines
+    // 5. Seed Computers / Fleet Machines & Hardware Specs
     const computerCount = await db.Computer.count();
     if (computerCount === 0) {
       const initialComputers = [
-        { computer_name: 'ESP-01', status: 'ONLINE', zone_id: 1 },
-        { computer_name: 'ESP-02', status: 'ONLINE', zone_id: 1 },
-        { computer_name: 'ESP-03', status: 'ONLINE', zone_id: 1 },
-        { computer_name: 'ESP-04', status: 'ONLINE', zone_id: 1 },
-        { computer_name: 'VIP-07', status: 'IN_USE', zone_id: 2 },
-        { computer_name: 'VIP-12', status: 'ONLINE', zone_id: 2 },
-        { computer_name: 'ST-05', status: 'IN_USE', zone_id: 3 },
-        { computer_name: 'ST-18', status: 'MAINTENANCE', zone_id: 3 },
-        { computer_name: 'ST-22', status: 'OFFLINE', zone_id: 3 },
-        { computer_name: 'STR-02', status: 'IN_USE', zone_id: 4 },
-        { computer_name: 'CLOUD-08', status: 'IN_USE', zone_id: 5 }
+        {
+          computer_name: 'ESP-01',
+          status: 'ONLINE',
+          zone_id: 1,
+          cpu: 'Intel Core i9-14900K',
+          cpu_specs: '24 Cores / 32 Threads @ 5.8GHz',
+          ram: '64GB DDR5',
+          ram_specs: '6000MHz CL30 Kingston Beast',
+          gpu: 'RTX 4080 Super 16GB',
+          gpu_edition: 'ASUS ROG Strix OC White',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'iSCSI Boot + 2TB Writeback RAM',
+          boot_image: 'Win11-Esports-Tournament-v3',
+          cpu_temp: 54,
+          gpu_temp: 52,
+          fan_speed: '62%',
+          san_ping: '0.24ms'
+        },
+        {
+          computer_name: 'ESP-02',
+          status: 'ONLINE',
+          zone_id: 1,
+          cpu: 'Intel Core i9-14900K',
+          cpu_specs: '24 Cores / 32 Threads @ 5.8GHz',
+          ram: '64GB DDR5',
+          ram_specs: '6000MHz CL30 Kingston Beast',
+          gpu: 'RTX 4080 Super 16GB',
+          gpu_edition: 'ASUS ROG Strix OC White',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'iSCSI Boot + 2TB Writeback RAM',
+          boot_image: 'Win11-Esports-Tournament-v3',
+          cpu_temp: 53,
+          gpu_temp: 50,
+          fan_speed: '60%',
+          san_ping: '0.22ms'
+        },
+        {
+          computer_name: 'VIP-01',
+          status: 'ONLINE',
+          zone_id: 2,
+          cpu: 'Intel Core i7-14700K',
+          cpu_specs: '20 Cores / 28 Threads @ 5.6GHz',
+          ram: '32GB DDR5',
+          ram_specs: '5600MHz Corsair Vengeance',
+          gpu: 'RTX 4070 Ti Super 16GB',
+          gpu_edition: 'MSI Gaming X Slim',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'High Throughput Cache 1TB',
+          boot_image: 'Win11-Pro-Cyber-v25.02',
+          cpu_temp: 49,
+          gpu_temp: 47,
+          fan_speed: '50%',
+          san_ping: '0.28ms'
+        },
+        {
+          computer_name: 'VIP-02',
+          status: 'RESERVED',
+          zone_id: 2,
+          cpu: 'Intel Core i7-14700K',
+          cpu_specs: '20 Cores / 28 Threads @ 5.6GHz',
+          ram: '32GB DDR5',
+          ram_specs: '5600MHz Corsair Vengeance',
+          gpu: 'RTX 4070 Ti Super 16GB',
+          gpu_edition: 'MSI Gaming X Slim',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'High Throughput Cache 1TB',
+          boot_image: 'Win11-Pro-Cyber-v25.02',
+          cpu_temp: 38,
+          gpu_temp: 35,
+          fan_speed: '30%',
+          san_ping: '0.25ms'
+        },
+        {
+          computer_name: 'STD-01',
+          status: 'ONLINE',
+          zone_id: 4,
+          cpu: 'AMD Ryzen 9 7950X',
+          cpu_specs: '16 Cores / 32 Threads @ 5.7GHz',
+          ram: '64GB DDR5',
+          ram_specs: '6000MHz G.Skill Trident Z5 Neo',
+          gpu: 'RTX 4090 24GB',
+          gpu_edition: 'Gigabyte AORUS Master Tri-Fan',
+          storage_type: 'Dual NVMe 2TB PCIe 4.0',
+          storage_specs: 'Direct SSD Capture + SAN Boot',
+          boot_image: 'Win11-Creator-OBS-v25',
+          cpu_temp: 58,
+          gpu_temp: 55,
+          fan_speed: '68%',
+          san_ping: '0.19ms'
+        },
+        {
+          computer_name: 'ST-01',
+          status: 'ONLINE',
+          zone_id: 3,
+          cpu: 'Intel Core i5-13400F',
+          cpu_specs: '10 Cores / 16 Threads @ 4.6GHz',
+          ram: '32GB DDR4',
+          ram_specs: '3200MHz Dual Channel TeamGroup',
+          gpu: 'RTX 4060 8GB',
+          gpu_edition: 'Zotac Gaming Twin Edge OC',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'PXE High Speed Cluster Node',
+          boot_image: 'Win11-Cyber-Standard-v2',
+          cpu_temp: 44,
+          gpu_temp: 42,
+          fan_speed: '45%',
+          san_ping: '0.31ms'
+        },
+        {
+          computer_name: 'ST-02',
+          status: 'MAINTENANCE',
+          zone_id: 3,
+          cpu: 'Intel Core i5-13400F',
+          cpu_specs: '10 Cores / 16 Threads @ 4.6GHz',
+          ram: '32GB DDR4',
+          ram_specs: '3200MHz Dual Channel TeamGroup',
+          gpu: 'RTX 4060 8GB',
+          gpu_edition: 'Zotac Gaming Twin Edge OC',
+          storage_type: 'SAN NVMe 10Gbps',
+          storage_specs: 'PXE High Speed Cluster Node',
+          boot_image: 'SAN Read Drop: Check Thermal',
+          cpu_temp: 79,
+          gpu_temp: 72,
+          fan_speed: '95%',
+          san_ping: '0.45ms'
+        },
+        {
+          computer_name: 'CLOUD-01',
+          status: 'ONLINE',
+          zone_id: 5,
+          cpu: 'AMD EPYC 7763',
+          cpu_specs: '64 Cores / 128 Threads Hypervisor',
+          ram: '128GB ECC Reg',
+          ram_specs: 'Quad-Channel Server Grade',
+          gpu: 'RTX 4090 Headless',
+          gpu_edition: 'NVENC Cloud Virtual Gaming Grid',
+          storage_type: '40Gbps Fiber SAN',
+          storage_specs: 'Direct RDMA Ultra-low Latency',
+          boot_image: 'WebRTC-vGPU-Hypervisor-v1',
+          cpu_temp: 48,
+          gpu_temp: 45,
+          fan_speed: '55%',
+          san_ping: '0.15ms'
+        }
       ];
 
-      // Add remaining standard PCs up to 30 machines
-      for (let i = 1; i <= 20; i++) {
+      // Add remaining standard PCs up to 20 machines
+      for (let i = 3; i <= 15; i++) {
         const idStr = String(i).padStart(2, '0');
         if (!initialComputers.some(c => c.computer_name === `ST-${idStr}`)) {
           initialComputers.push({
             computer_name: `ST-${idStr}`,
-            status: i % 3 === 0 ? 'ONLINE' : i % 5 === 0 ? 'OFFLINE' : 'ONLINE',
-            zone_id: 3
+            status: i % 4 === 0 ? 'OFFLINE' : i % 3 === 0 ? 'IN_USE' : 'ONLINE',
+            zone_id: 3,
+            cpu: 'Intel Core i5-13400F',
+            cpu_specs: '10 Cores / 16 Threads @ 4.6GHz',
+            ram: '32GB DDR4',
+            ram_specs: '3200MHz Dual Channel',
+            gpu: 'RTX 4060 8GB',
+            gpu_edition: 'Zotac Gaming Twin Edge',
+            storage_type: 'SAN NVMe 10Gbps',
+            storage_specs: 'PXE High Speed Node',
+            boot_image: 'Win11-Cyber-Standard-v2',
+            cpu_temp: 42 + (i % 8),
+            gpu_temp: 40 + (i % 6),
+            fan_speed: '48%',
+            san_ping: '0.28ms'
           });
         }
       }

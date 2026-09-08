@@ -1,0 +1,194 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import Header from '../../widgets/header/Header';
+import Sidebar from '../../widgets/sidebar/Sidebar';
+import Footer from '../../widgets/footer/Footer';
+
+// Hardware Config Service, Components & Models
+import hardwareService from '../../shared/api/hardwareService';
+import {
+  MOCK_HARDWARE_METRICS,
+  MOCK_HARDWARE_SPECS,
+  MOCK_HARDWARE_DIAGNOSTICS
+} from '../../features/hardware-config/model/mockHardwareData';
+import HardwareKpiBento from '../../features/hardware-config/ui/HardwareKpiBento';
+import HardwareFilterBar from '../../features/hardware-config/ui/HardwareFilterBar';
+import HardwareSpecsTable from '../../features/hardware-config/ui/HardwareSpecsTable';
+import HardwareDiagnostics from '../../features/hardware-config/ui/HardwareDiagnostics';
+import HardwareTelemetryModal from '../../features/hardware-config/ui/HardwareTelemetryModal';
+import CreateHardwareModal from '../../features/hardware-config/ui/CreateHardwareModal';
+
+/**
+ * ManageConfigPage (Quản Lý Cấu Hình Máy & BootROM SAN Telemetry)
+ * Built with FSD Architecture, Clean Code & DRY Principles
+ */
+export default function ManageConfigPage({ user, onLogout }) {
+  const [specs, setSpecs] = useState(MOCK_HARDWARE_SPECS);
+  const [metrics, setMetrics] = useState(MOCK_HARDWARE_METRICS);
+  const [diagnostics, setDiagnostics] = useState(MOCK_HARDWARE_DIAGNOSTICS);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [zoneFilter, setZoneFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const [selectedTelemetry, setSelectedTelemetry] = useState(null);
+  const [isTelemetryModalOpen, setIsTelemetryModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Fetch real specs data from Backend API on mount
+  useEffect(() => {
+    const fetchHardwareData = async () => {
+      const result = await hardwareService.getHardwareSpecs();
+      if (result) {
+        if (result.specs && result.specs.length > 0) setSpecs(result.specs);
+        if (result.metrics) setMetrics(result.metrics);
+        if (result.diagnostics) setDiagnostics(result.diagnostics);
+      }
+    };
+    fetchHardwareData();
+  }, []);
+
+  // Filtered Specs Calculation
+  const filteredSpecs = useMemo(() => {
+    return specs.filter((item) => {
+      // Search
+      const query = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !query ||
+        item.id.toLowerCase().includes(query) ||
+        item.cpu.model.toLowerCase().includes(query) ||
+        item.gpu.model.toLowerCase().includes(query) ||
+        item.ram.capacity.toLowerCase().includes(query) ||
+        item.storage.type.toLowerCase().includes(query);
+
+      // Zone filter
+      const matchZone = zoneFilter === 'all' || item.zoneId === zoneFilter;
+
+      // Status filter
+      const matchStatus = statusFilter === 'all' || item.status === statusFilter;
+
+      return matchSearch && matchZone && matchStatus;
+    });
+  }, [specs, searchQuery, zoneFilter, statusFilter]);
+
+  // Handlers
+  const handleOpenTelemetry = (hardwareItem) => {
+    setSelectedTelemetry(hardwareItem);
+    setIsTelemetryModalOpen(true);
+  };
+
+  const handleEdit = (hardwareItem) => {
+    const newCpu = window.prompt(`Chỉnh sửa tên CPU cho máy ${hardwareItem.id}:`, hardwareItem.cpu.model);
+    if (newCpu) {
+      setSpecs((prev) =>
+        prev.map((item) =>
+          item.id === hardwareItem.id
+            ? { ...item, cpu: { ...item.cpu, model: newCpu } }
+            : item
+        )
+      );
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm(`Xóa cấu hình phần cứng trạm máy ${id} khỏi danh sách?`)) {
+      setSpecs((prev) => prev.filter((item) => item.id !== id));
+    }
+  };
+
+  const handleCreateHardware = (newHardware) => {
+    setSpecs((prev) => [newHardware, ...prev]);
+  };
+
+  const handleExportReport = () => {
+    alert('Đã xuất báo cáo tổng hợp Cấu hình Phần cứng Fleet thành công (CSV/PDF)!');
+  };
+
+  return (
+    <div className="bg-slate-50/50 font-sans text-slate-900 antialiased min-h-screen">
+      {/* Shared Header Widget */}
+      <Header
+        user={user}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onLogout={onLogout}
+      />
+
+      {/* Shared Sidebar Widget with activeNav='config' */}
+      <Sidebar activeNav="config" bootromStatus="ONLINE" role="ADMIN" />
+
+      {/* Main Content Area */}
+      <div className="pl-[240px]">
+        <main className="relative pt-16 min-h-screen bg-slate-50/50 w-full px-6 py-6 pb-24 flex flex-col justify-between">
+          <div className="flex flex-col w-full gap-6">
+            {/* Page Header & Breadcrumbs */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-xs text-slate-600 font-semibold">
+                  <span className="flex items-center gap-1 hover:text-sky-600 transition-colors cursor-pointer">
+                    <span className="material-symbols-outlined text-[16px] text-slate-500">home</span>
+                    Cơ Sở Hạ Tầng
+                  </span>
+                  <span className="text-slate-400 font-bold">/</span>
+                  <span>Phòng Máy &amp; Thiết Bị</span>
+                  <span className="text-slate-400 font-bold">/</span>
+                  <span className="text-slate-900 font-extrabold">Cấu Hình Máy</span>
+                </div>
+                <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mt-1">
+                  Quản Lý Cấu Hình Phần Cứng &amp; BootROM
+                  <span className="bg-sky-100 text-sky-900 font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Hardware OS v4.6
+                  </span>
+                </h1>
+                <p className="text-xs text-slate-600 max-w-3xl font-medium">
+                  Giám sát chi tiết thông số chip CPU, card GPU, bộ nhớ RAM và điều phối hạ tầng BootROM SAN 10Gbps thời gian thực.
+                </p>
+              </div>
+            </div>
+
+            {/* Telemetry Summary Bento Grid */}
+            <HardwareKpiBento metrics={metrics} />
+
+            {/* Filter Matrix & CTA Toolbar */}
+            <HardwareFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              zoneFilter={zoneFilter}
+              onZoneChange={setZoneFilter}
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              onExportReport={handleExportReport}
+              onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            />
+
+            {/* High-Density Hardware Inventory Table */}
+            <HardwareSpecsTable
+              specs={filteredSpecs}
+              onOpenTelemetry={handleOpenTelemetry}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+
+            {/* Telemetry Diagnostics Peek Section */}
+            <HardwareDiagnostics diagnostics={diagnostics} />
+          </div>
+
+          {/* Shared Footer Widget */}
+          <Footer />
+        </main>
+      </div>
+
+      {/* Modals */}
+      <HardwareTelemetryModal
+        isOpen={isTelemetryModalOpen}
+        onClose={() => setIsTelemetryModalOpen(false)}
+        hardware={selectedTelemetry}
+      />
+
+      <CreateHardwareModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateHardware}
+      />
+    </div>
+  );
+}

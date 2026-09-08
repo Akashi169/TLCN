@@ -88,6 +88,32 @@ class ComputerController {
       next(error);
     }
   }
+
+  async getHardwareSpecs(req, res, next) {
+    try {
+      const data = await computerService.getHardwareSpecs();
+      return res.json({
+        status: 'success',
+        data,
+        message: 'Lấy thông số cấu hình phần cứng thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createHardwareSpec(req, res, next) {
+    try {
+      const newSpec = await computerService.createHardwareSpec(req.body);
+      return res.status(201).json({
+        status: 'success',
+        data: newSpec,
+        message: 'Thêm cấu hình máy mới thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ComputerController();
