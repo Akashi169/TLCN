@@ -251,17 +251,17 @@ const seedData = async (db) => {
 
     // 6. Seed Default Users & Member Accounts (3 Roles: ADMIN, STAFF, CUSTOMER)
     const seedUsers = [
-      { username: 'admin', full_name: 'Quản Trị Viên Hệ Thống', role: 'ADMIN' },
-      { username: 'staff', full_name: 'Nhân Viên Thu Ngân A', role: 'STAFF' },
-      { username: 'employee', full_name: 'Nhân Viên Thu Ngân B', role: 'STAFF' },
-      { username: 'nam.nv', full_name: 'Nguyễn Văn Nam', role: 'CUSTOMER', balance: 485000, rankId: 3 },
-      { username: 'long.hoang', full_name: 'Hoàng Long', role: 'CUSTOMER', balance: 1200000, rankId: 3 },
-      { username: 'baotran99', full_name: 'Trần Quốc Bảo', role: 'CUSTOMER', balance: 65000, rankId: 1 },
-      { username: 'khoa_cyber', full_name: 'Lê Minh Khoa', role: 'CUSTOMER', balance: 15000, rankId: 1 },
-      { username: 'linh.stream', full_name: 'Phạm Thùy Linh', role: 'CUSTOMER', balance: 890000, rankId: 4 },
-      { username: 'dang.dh', full_name: 'Đỗ Hải Đăng', role: 'CUSTOMER', balance: 0, rankId: 2 },
-      { username: 'customer', full_name: 'Khách Hàng VIP', role: 'CUSTOMER', balance: 500000, rankId: 3 },
-      { username: 'user', full_name: 'Khách Hàng Thường', role: 'CUSTOMER', balance: 50000, rankId: 1 }
+      { username: 'admin', full_name: 'Quản Trị Viên Hệ Thống', role: 'ADMIN', phone: '0901000000', email: 'admin@nexuscyber.com', status: 'ACTIVE' },
+      { username: 'staff', full_name: 'Nhân Viên Thu Ngân A', role: 'STAFF', phone: '0902000000', email: 'staff.a@nexuscyber.com', status: 'ACTIVE' },
+      { username: 'employee', full_name: 'Nhân Viên Thu Ngân B', role: 'STAFF', phone: '0903000000', email: 'staff.b@nexuscyber.com', status: 'ACTIVE' },
+      { username: 'nam.nv', full_name: 'Nguyễn Văn Nam', role: 'CUSTOMER', balance: 485000, rankId: 3, points: 1450, phone: '0908123456', email: 'nam.nv@nexuscyber.com', status: 'ACTIVE', lastLogin: new Date('2026-09-08T14:30:00Z') },
+      { username: 'long.hoang', full_name: 'Hoàng Long', role: 'CUSTOMER', balance: 1200000, rankId: 3, points: 3200, phone: '0912345678', email: 'long.hoang@nexuscyber.com', status: 'ACTIVE', lastLogin: new Date('2026-09-08T12:15:00Z') },
+      { username: 'baotran99', full_name: 'Trần Quốc Bảo', role: 'CUSTOMER', balance: 65000, rankId: 1, points: 150, phone: '0987654321', email: 'baotran99@gmail.com', status: 'ACTIVE', lastLogin: new Date('2026-09-07T19:45:00Z') },
+      { username: 'khoa_cyber', full_name: 'Lê Minh Khoa', role: 'CUSTOMER', balance: 15000, rankId: 1, points: 45, phone: '0933112233', email: 'khoa.cyber@gmail.com', status: 'SUSPENDED', lastLogin: new Date('2026-09-05T10:20:00Z') },
+      { username: 'linh.stream', full_name: 'Phạm Thùy Linh', role: 'CUSTOMER', balance: 890000, rankId: 4, points: 8900, phone: '0977889900', email: 'linh.streamer@live.com', status: 'ACTIVE', lastLogin: new Date('2026-09-08T15:10:00Z') },
+      { username: 'dang.dh', full_name: 'Đỗ Hải Đăng', role: 'CUSTOMER', balance: 0, rankId: 2, points: 0, phone: '0944556677', email: 'dang.dh@gmail.com', status: 'LOCKED', lastLogin: new Date('2026-08-30T08:00:00Z') },
+      { username: 'customer', full_name: 'Khách Hàng VIP', role: 'CUSTOMER', balance: 500000, rankId: 3, points: 1500, phone: '0955667788', email: 'customer.vip@nexuscyber.com', status: 'ACTIVE', lastLogin: new Date('2026-09-08T11:00:00Z') },
+      { username: 'user', full_name: 'Khách Hàng Thường', role: 'CUSTOMER', balance: 50000, rankId: 1, points: 100, phone: '0966778899', email: 'user.normal@nexuscyber.com', status: 'ACTIVE', lastLogin: new Date('2026-09-06T16:20:00Z') }
     ];
 
     for (const u of seedUsers) {
@@ -271,7 +271,11 @@ const seedData = async (db) => {
           username: u.username,
           password: hashedPassword,
           full_name: u.full_name,
-          role: u.role
+          role: u.role,
+          phone_number: u.phone || null,
+          email: u.email || null,
+          status: u.status || 'ACTIVE',
+          last_login: u.lastLogin || new Date()
         });
 
         if (u.role === 'CUSTOMER') {
@@ -281,16 +285,27 @@ const seedData = async (db) => {
               member_id: newUser.user_id,
               real_balance: u.balance || 0,
               bonus_balance: Math.floor((u.balance || 0) * 0.1),
-              rank_id: u.rankId || 1
+              rank_id: u.rankId || 1,
+              points: u.points || 0
             }
           });
         }
       } else {
-        // Ensure hashed password and updated role
+        // Ensure hashed password, status, and updated role
         existingUser.password = hashedPassword;
+        if (u.phone) existingUser.phone_number = u.phone;
+        if (u.email) existingUser.email = u.email;
+        if (u.status) existingUser.status = u.status;
+        if (u.lastLogin) existingUser.last_login = u.lastLogin;
         if (existingUser.role === 'MEMBER') existingUser.role = 'CUSTOMER';
         if (existingUser.role === 'EMPLOYEE') existingUser.role = 'STAFF';
         await existingUser.save();
+
+        const member = await db.Member.findOne({ where: { member_id: existingUser.user_id } });
+        if (member && u.points !== undefined) {
+          member.points = u.points;
+          await member.save();
+        }
       }
     }
 
