@@ -9,12 +9,29 @@ const seedData = async (db) => {
   try {
     const hashedPassword = bcrypt.hashSync('123456', 10);
 
-    // Ensure role column accepts all roles
+    // Helper to safely add missing columns if they don't exist in existing tables
+    const addColumnIfNotExists = async (table, column, definition) => {
+      try {
+        await db.sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+      } catch {
+        // Ignore if column already exists
+      }
+    };
+
+    // Ensure users table schema matches User.js model
     try {
       await db.sequelize.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'CUSTOMER'");
     } catch {
       // Ignore dialect error if alter column is unnecessary
     }
+
+    await addColumnIfNotExists('users', 'phone_number', 'VARCHAR(20) NULL');
+    await addColumnIfNotExists('users', 'email', 'VARCHAR(100) NULL');
+    await addColumnIfNotExists('users', 'status', "VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'");
+    await addColumnIfNotExists('users', 'last_login', 'DATETIME NULL');
+
+    // Ensure members table schema matches Member.js model
+    await addColumnIfNotExists('members', 'points', 'INT NOT NULL DEFAULT 0');
 
     // 1. Seed Membership Ranks
     const rankCount = await db.MembershipRank.count();
@@ -309,7 +326,101 @@ const seedData = async (db) => {
       }
     }
 
-    console.log('✅ Synchronized Database & Successfully Seeded Mock Data for 3 Roles!');
+    // 7. Seed Promotion Campaigns
+    if (db.Promotion) {
+      const promoCount = await db.Promotion.count();
+      if (promoCount === 0) {
+        await db.Promotion.bulkCreate([
+          {
+            code: '#HH-WED-24',
+            name: 'HAPPY HOUR - THỨ 4 BÙNG NỔ',
+            description: 'Giảm giá giờ chơi khung giờ vàng 12h - 17h hàng tuần.',
+            discount_type: 'PERCENTAGE',
+            discount_value: 30.00,
+            max_discount_amount: 50000.00,
+            min_deposit_amount: null,
+            start_date: '2024-10-01',
+            end_date: '2024-12-31',
+            schedule_note: 'Thứ 4 Hàng Tuần',
+            target_audience: 'ALL',
+            status: 'ACTIVE',
+            budget_spent: 18500000.00,
+            total_budget: 60000000.00,
+            is_active: true
+          },
+          {
+            code: '#TOPUP-50K',
+            name: 'NẠP ĐẦU THÁNG - TẶNG NGAY 50K',
+            description: 'Nạp từ 100k tặng thêm 50k vào tài khoản phụ chơi game.',
+            discount_type: 'FIXED_AMOUNT',
+            discount_value: 50000.00,
+            max_discount_amount: null,
+            min_deposit_amount: 100000.00,
+            start_date: '2024-11-01',
+            end_date: '2024-11-05',
+            schedule_note: '5 ngày diễn ra',
+            target_audience: 'NORMAL',
+            status: 'UPCOMING',
+            budget_spent: 0.00,
+            total_budget: 60000000.00,
+            is_active: true
+          },
+          {
+            code: '#VIP-NEXUS-Q4',
+            name: 'VIP BLACK CYBER TOURNAMENT',
+            description: 'Giảm tiền trạm máy Zone Thi Đấu cho rank Kim Cương trở lên.',
+            discount_type: 'PERCENTAGE',
+            discount_value: 50.00,
+            max_discount_amount: 100000.00,
+            min_deposit_amount: null,
+            start_date: '2024-10-15',
+            end_date: '2024-12-15',
+            schedule_note: 'Suốt Quý 4',
+            target_audience: 'VIP',
+            status: 'ACTIVE',
+            budget_spent: 14200000.00,
+            total_budget: 60000000.00,
+            is_active: true
+          },
+          {
+            code: '#COMBO-NIGHT',
+            name: 'COMBO XUYÊN ĐÊM 10 Tiếng',
+            description: 'Gói chơi game xuyên đêm từ 22h - 8h sáng hôm sau.',
+            discount_type: 'COMBO',
+            discount_value: 40000.00,
+            max_discount_amount: null,
+            min_deposit_amount: null,
+            start_date: '2024-09-01',
+            end_date: '2024-12-31',
+            schedule_note: 'Hàng Đêm (22h - 8h)',
+            target_audience: 'ALL',
+            status: 'ACTIVE',
+            budget_spent: 8100000.00,
+            total_budget: 60000000.00,
+            is_active: true
+          },
+          {
+            code: '#FB-SNACK-20',
+            name: 'ƯU ĐÃI F&B - GIẢM 20% ĐỒ UỐNG',
+            description: 'Áp dụng cho tất cả đồ uống pha chế khi đặt qua máy.',
+            discount_type: 'FOOD_BEVERAGE',
+            discount_value: 20.00,
+            max_discount_amount: 30000.00,
+            min_deposit_amount: null,
+            start_date: '2024-08-01',
+            end_date: '2024-09-30',
+            schedule_note: 'Đã hết hạn',
+            target_audience: 'ALL',
+            status: 'ENDED',
+            budget_spent: 2000000.00,
+            total_budget: 60000000.00,
+            is_active: false
+          }
+        ]);
+      }
+    }
+
+    console.log('✅ Synchronized Database & Successfully Seeded Promotion & Cyber Data!');
   } catch (error) {
     console.error('❌ Error during Seeder execution:', error);
   }
