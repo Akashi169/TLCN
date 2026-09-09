@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutGrid, UserCheck, CreditCard, Cpu, Gamepad2, BarChart3, Settings, Sliders, Tag } from 'lucide-react';
+import { LayoutGrid, UserCheck, CreditCard, Cpu, Gamepad2, BarChart3, Settings, Sliders, Tag, Receipt } from 'lucide-react';
 
 export default function Sidebar({ activeNav = 'grid', setActiveNav, bootromStatus = 'ONLINE' }) {
     const navigate = useNavigate();
@@ -11,6 +11,7 @@ export default function Sidebar({ activeNav = 'grid', setActiveNav, bootromStatu
         { id: 'hardware', label: 'Quản Lý Danh Sách Máy', icon: Cpu, path: '/admin/machines' },
         { id: 'config', label: 'Cấu Hình Máy', icon: Sliders, path: '/admin/config' },
         { id: 'promotions', label: 'Quản Lý Khuyến Mãi', icon: Tag, path: '/admin/promotions' },
+        { id: 'transactions', label: 'Quản Lý Giao Dịch', icon: Receipt, path: '/admin/transactions' },
         { id: 'billing', label: 'Nạp Giờ & Dịch Vụ F&B', icon: CreditCard },
         { id: 'games', label: 'Kho Game & BootROM', icon: Gamepad2 },
         { id: 'reports', label: 'Báo Cáo Doanh Thu', icon: BarChart3 },
@@ -38,25 +39,25 @@ export default function Sidebar({ activeNav = 'grid', setActiveNav, bootromStatu
                             key={item.id}
                             href={item.path || '#'}
                             onClick={(e) => handleNavClick(item, e)}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[14px] transition-all ${
                                 isActive
-                                    ? 'bg-sky-50 text-sky-700 font-semibold border border-sky-200/60 shadow-xs'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                                    ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200/80 shadow-xs'
+                                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                             }`}
                         >
-                            <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-500'}`} strokeWidth={2.2} />
                             <span>{item.label}</span>
                         </a>
                     );
                 })}
             </nav>
 
-            <div className="px-3 pt-3 border-t border-slate-100 space-y-2">
+            <div className="px-3 pt-3 pb-1 border-t border-slate-100 space-y-1.5">
                 <a
                     href="#"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium text-sm transition-all"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold text-[14px] transition-all"
                 >
-                    <Settings className="w-5 h-5 text-slate-400 shrink-0" />
+                    <Settings className="w-4.5 h-4.5 text-slate-500 shrink-0" strokeWidth={2.2} />
                     <span>Cấu Hình Hệ Thống</span>
                 </a>
                 <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-between">

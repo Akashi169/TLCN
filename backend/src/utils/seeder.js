@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { TRANSACTION_TYPES, TRANSACTION_CATEGORIES, PAYMENT_METHODS, TRANSACTION_STATUS } = require('./constants');
 
 /**
  * Database Seeder Utility for NEXUS Cyber Management System
@@ -8,30 +9,6 @@ const bcrypt = require('bcryptjs');
 const seedData = async (db) => {
   try {
     const hashedPassword = bcrypt.hashSync('123456', 10);
-
-    // Helper to safely add missing columns if they don't exist in existing tables
-    const addColumnIfNotExists = async (table, column, definition) => {
-      try {
-        await db.sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
-      } catch {
-        // Ignore if column already exists
-      }
-    };
-
-    // Ensure users table schema matches User.js model
-    try {
-      await db.sequelize.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'CUSTOMER'");
-    } catch {
-      // Ignore dialect error if alter column is unnecessary
-    }
-
-    await addColumnIfNotExists('users', 'phone_number', 'VARCHAR(20) NULL');
-    await addColumnIfNotExists('users', 'email', 'VARCHAR(100) NULL');
-    await addColumnIfNotExists('users', 'status', "VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'");
-    await addColumnIfNotExists('users', 'last_login', 'DATETIME NULL');
-
-    // Ensure members table schema matches Member.js model
-    await addColumnIfNotExists('members', 'points', 'INT NOT NULL DEFAULT 0');
 
     // 1. Seed Membership Ranks
     const rankCount = await db.MembershipRank.count();
@@ -420,7 +397,88 @@ const seedData = async (db) => {
       }
     }
 
-    console.log('✅ Synchronized Database & Successfully Seeded Promotion & Cyber Data!');
+    // 8. Seed Financial Transactions (Audit Stream Ledger)
+    if (db.FinancialTransaction) {
+      const txnCount = await db.FinancialTransaction.count();
+      if (txnCount === 0) {
+        // Get member IDs from seeded users
+        const namMember = await db.User.findOne({ where: { username: 'nam.nv' } });
+        const longMember = await db.User.findOne({ where: { username: 'long.hoang' } });
+        const baoMember = await db.User.findOne({ where: { username: 'baotran99' } });
+        const linhMember = await db.User.findOne({ where: { username: 'linh.stream' } });
+        const khoaMember = await db.User.findOne({ where: { username: 'khoa_cyber' } });
+
+        await db.FinancialTransaction.bulkCreate([
+          {
+            txn_code: 'TXN-98421',
+            type: TRANSACTION_TYPES.INCOME,
+            category: TRANSACTION_CATEGORIES.COMBINED,
+            amount: 145000.00,
+            payment_method: PAYMENT_METHODS.VIETQR,
+            status: TRANSACTION_STATUS.SUCCESS,
+            member_id: namMember ? namMember.user_id : 4,
+            computer_name: 'PC-VIP-04',
+            staff_name: 'Thu Ngân A',
+            notes: 'Nạp giờ chơi (100k) + Gọi Mì Ý Sốt Bò Bằm & Pepsi (45k)',
+            created_at: new Date('2024-10-24T14:32:15Z')
+          },
+          {
+            txn_code: 'TXN-98420',
+            type: TRANSACTION_TYPES.INCOME,
+            category: TRANSACTION_CATEGORIES.TOPUP,
+            amount: 100000.00,
+            payment_method: PAYMENT_METHODS.CASH,
+            status: TRANSACTION_STATUS.SUCCESS,
+            member_id: longMember ? longMember.user_id : 5,
+            computer_name: 'PC-B12',
+            staff_name: 'Thu Ngân A',
+            notes: 'Nạp tiền giờ chơi tại quầy thu ngân',
+            created_at: new Date('2024-10-24T14:28:04Z')
+          },
+          {
+            txn_code: 'TXN-98419',
+            type: TRANSACTION_TYPES.INCOME,
+            category: TRANSACTION_CATEGORIES.SERVICE_FOOD,
+            amount: 45000.00,
+            payment_method: PAYMENT_METHODS.MOMO,
+            status: TRANSACTION_STATUS.SUCCESS,
+            member_id: baoMember ? baoMember.user_id : 6,
+            computer_name: 'PC-A05',
+            staff_name: 'Thu Ngân B',
+            notes: 'Đơn F&B: 1 Cơm Chiên Dương Châu + 1 Trà Đào Sữa',
+            created_at: new Date('2024-10-24T14:21:10Z')
+          },
+          {
+            txn_code: 'TXN-98418',
+            type: TRANSACTION_TYPES.INCOME,
+            category: TRANSACTION_CATEGORIES.TOPUP,
+            amount: 500000.00,
+            payment_method: PAYMENT_METHODS.VIETQR,
+            status: TRANSACTION_STATUS.SUCCESS,
+            member_id: linhMember ? linhMember.user_id : 8,
+            computer_name: 'PC-ST-01',
+            staff_name: 'Hệ Thống Tự Động',
+            notes: 'Nạp tiền tài khoản hội viên Streamer VIP',
+            created_at: new Date('2024-10-24T13:45:00Z')
+          },
+          {
+            txn_code: 'TXN-98417',
+            type: TRANSACTION_TYPES.REFUND,
+            category: TRANSACTION_CATEGORIES.OTHER,
+            amount: 50000.00,
+            payment_method: PAYMENT_METHODS.CASH,
+            status: TRANSACTION_STATUS.REFUNDED,
+            member_id: khoaMember ? khoaMember.user_id : 9,
+            computer_name: 'PC-STD-01',
+            staff_name: 'Quản Trị Viên',
+            notes: 'Hoàn tiền dịch vụ do sự cố mất điện trạm máy ST-02',
+            created_at: new Date('2024-10-24T12:10:30Z')
+          }
+        ]);
+      }
+    }
+
+    console.log('✅ Synchronized Database & Successfully Seeded Financial Transaction Data!');
   } catch (error) {
     console.error('❌ Error during Seeder execution:', error);
   }

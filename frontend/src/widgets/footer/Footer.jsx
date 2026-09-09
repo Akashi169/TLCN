@@ -21,7 +21,7 @@ export default function Footer({ metrics, variant = 'default' }) {
     const m = metrics || { localCount: 56, cloudCount: 28, readyCount: 28, maintCount: 8 };
 
     return (
-        <footer className="fixed bottom-0 left-[240px] right-0 z-30 px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-md border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <footer className="fixed bottom-0 left-[240px] right-0 z-30 px-6 sm:px-8 py-3 bg-white/95 backdrop-blur-md border-t border-slate-200 flex items-center justify-between gap-4 shadow-sm">
             {/* Color status legend */}
             <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
                 <div className="flex items-center gap-1.5">
@@ -42,8 +42,8 @@ export default function Footer({ metrics, variant = 'default' }) {
                 </div>
             </div>
 
-            {/* Shortcuts & Action buttons with proper right padding */}
-            <div className="flex items-center gap-3 pr-2 sm:pr-4">
+            {/* Shortcuts & Action buttons with crisp 24px right alignment */}
+            <div className="flex items-center gap-3">
                 <div className="hidden xl:flex items-center gap-2 text-xs text-slate-500 font-semibold">
                     <span>
                         <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-800 font-mono font-bold text-[10px]">F2</kbd> Nạp giờ

@@ -1,9 +1,9 @@
 // src/shared/data/mockData.js
 export const STATION_TYPES = {
-    local: { id: 'local', label: 'Tại Quán', color: 'amber', icon: 'User', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    cloud: { id: 'cloud', label: 'Cloud Remote', color: 'sky', icon: 'Cloud', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-    ready: { id: 'ready', label: 'Sẵn Sàng', color: 'emerald', icon: 'Power', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-    maint: { id: 'maint', label: 'Bảo Trì', color: 'rose', icon: 'Wrench', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' }
+    local: { id: 'local', label: 'Tại Quán', color: 'amber', icon: 'User', bg: 'bg-amber-100', text: 'text-amber-950', border: 'border-amber-300' },
+    cloud: { id: 'cloud', label: 'Cloud Remote', color: 'sky', icon: 'Cloud', bg: 'bg-sky-100', text: 'text-sky-950', border: 'border-sky-300' },
+    ready: { id: 'ready', label: 'Sẵn Sàng', color: 'emerald', icon: 'Power', bg: 'bg-emerald-100', text: 'text-emerald-950', border: 'border-emerald-300' },
+    maint: { id: 'maint', label: 'Bảo Trì', color: 'rose', icon: 'Wrench', bg: 'bg-rose-100', text: 'text-rose-950', border: 'border-rose-300' }
 };
 
 export const ZONES = [
