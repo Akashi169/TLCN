@@ -9,6 +9,7 @@ import AccountManagementPage from './pages/admin/AccountManagementPage';
 import MachineManagementPage from './pages/admin/MachineManagementPage';
 import ManageConfigPage from './pages/admin/ManageConfigPage';
 import PromotionManagementPage from './pages/admin/PromotionManagementPage';
+import TransactionManagementPage from './pages/admin/TransactionManagementPage';
 import StaffDashboardPage from './pages/staff/StaffDashboardPage';
 import CustomerDashboardPage from './pages/customer/CustomerDashboardPage';
 
@@ -105,6 +106,11 @@ const PromotionManagementWrapper = () => {
   return <PromotionManagementPage user={currentUser} onLogout={logout} />;
 };
 
+const TransactionManagementWrapper = () => {
+  const { currentUser, logout } = useAuth();
+  return <TransactionManagementPage user={currentUser} onLogout={logout} />;
+};
+
 const StaffWrapper = () => {
   const { currentUser, logout } = useAuth();
   return <StaffDashboardPage user={currentUser} onLogout={logout} />;
@@ -156,6 +162,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <PromotionManagementWrapper />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/transactions"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <TransactionManagementWrapper />
               </ProtectedRoute>
             }
           />

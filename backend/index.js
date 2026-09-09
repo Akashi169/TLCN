@@ -4,7 +4,8 @@ require('dotenv').config();
 
 // Kéo toàn bộ cấu hình Database và Models vào đây
 const db = require('./src/models');
-// Import seeder
+// Import migration runner & seeder
+const runMigrations = require('./src/utils/migrationRunner');
 const seedData = require('./src/utils/seeder');
 
 // Import Routes
@@ -13,6 +14,7 @@ const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const memberRoutes = require('./src/routes/memberRoutes');
 const computerRoutes = require('./src/routes/computerRoutes');
 const promotionRoutes = require('./src/routes/promotionRoutes');
+const transactionRoutes = require('./src/routes/transactionRoutes');
 
 const errorHandler = require('./src/middleware/errorHandler');
 
@@ -34,23 +36,31 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/computers', computerRoutes);
 app.use('/api/promotions', promotionRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Centralized Error Handler
 app.use(errorHandler);
 
-// ĐỒNG BỘ DATABASE & BẬT SERVER
-db.sequelize.sync()
-  .then(async () => {
-    console.log('✅ Kết nối & Đồng bộ cấu trúc Database thành công!');
+// CHẠY MIGRATIONS, ĐỒNG BỘ DATABASE & BẬT SERVER
+async function startServer() {
+  try {
+    // 1. Chạy Sequelize CLI Migrations tự động trước
+    await runMigrations();
 
-    // Chạy seeder nạp dữ liệu mẫu nếu chưa có
+    // 2. Kết nối và đồng bộ ORM
+    await db.sequelize.sync();
+    console.log('✅ Kết nối & Đồng bộ CSDL MySQL thành công!');
+
+    // 3. Chạy seeder nạp dữ liệu mẫu
     await seedData(db);
 
-    // Bật server
+    // 4. Bật server
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
-  })
-  .catch(err => {
-    console.error('❌ Lỗi kết nối Database:', err);
-  });
+  } catch (err) {
+    console.error('❌ Lỗi khởi tạo ứng dụng Backend:', err);
+  }
+}
+
+startServer();

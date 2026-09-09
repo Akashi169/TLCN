@@ -1,0 +1,38 @@
+/**
+ * System Constants for Financial Transactions & System Workflows
+ */
+
+const TRANSACTION_TYPES = {
+    INCOME: 'INCOME',
+    REFUND: 'REFUND',
+    EXPENSE: 'EXPENSE'
+};
+
+const TRANSACTION_CATEGORIES = {
+    TOPUP: 'TOPUP',
+    SERVICE_FOOD: 'SERVICE_FOOD',
+    COMBINED: 'COMBINED',
+    NIGHT_COMBO: 'NIGHT_COMBO',
+    OTHER: 'OTHER'
+};
+
+const PAYMENT_METHODS = {
+    CASH: 'CASH',
+    VIETQR: 'VIETQR',
+    POS: 'POS',
+    MOMO: 'MOMO'
+};
+
+const TRANSACTION_STATUS = {
+    SUCCESS: 'SUCCESS',
+    PENDING: 'PENDING',
+    FAILED: 'FAILED',
+    REFUNDED: 'REFUNDED'
+};
+
+module.exports = {
+    TRANSACTION_TYPES,
+    TRANSACTION_CATEGORIES,
+    PAYMENT_METHODS,
+    TRANSACTION_STATUS
+};
