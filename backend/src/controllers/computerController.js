@@ -1,13 +1,18 @@
 const computerService = require('../services/computerService');
+const computerSocketService = require('../services/computerSocketService');
+const machineStore = require('../stores/machineStore');
 
 /**
  * ComputerController
- * Handles HTTP requests and delegates logic to ComputerService (SRP & Clean Code)
+ * Handles HTTP requests and delegates business logic to services.
  */
 class ComputerController {
+
+  // GET /api/computers
   async getComputers(req, res, next) {
     try {
       const computers = await computerService.getAllComputers();
+
       return res.json({
         status: 'success',
         data: computers,
@@ -18,16 +23,21 @@ class ComputerController {
     }
   }
 
+
+  // GET /api/computers/:id
   async getComputerById(req, res, next) {
     try {
       const { id } = req.params;
+
       const computer = await computerService.getComputerById(id);
+
       if (!computer) {
         return res.status(404).json({
           status: 'error',
           message: 'Không tìm thấy máy trạm'
         });
       }
+
       return res.json({
         status: 'success',
         data: computer
@@ -37,9 +47,13 @@ class ComputerController {
     }
   }
 
+
+  // POST /api/computers
   async createComputer(req, res, next) {
     try {
-      const newComputer = await computerService.createComputer(req.body);
+      const newComputer =
+        await computerService.createComputer(req.body);
+
       return res.status(201).json({
         status: 'success',
         data: newComputer,
@@ -50,16 +64,22 @@ class ComputerController {
     }
   }
 
+
+  // PUT /api/computers/:id
   async updateComputer(req, res, next) {
     try {
       const { id } = req.params;
-      const updated = await computerService.updateComputer(id, req.body);
+
+      const updated =
+        await computerService.updateComputer(id, req.body);
+
       if (!updated) {
         return res.status(404).json({
           status: 'error',
           message: 'Không tìm thấy máy trạm để cập nhật'
         });
       }
+
       return res.json({
         status: 'success',
         data: updated,
@@ -70,16 +90,22 @@ class ComputerController {
     }
   }
 
+
+  // DELETE /api/computers/:id
   async deleteComputer(req, res, next) {
     try {
       const { id } = req.params;
-      const deleted = await computerService.deleteComputer(id);
+
+      const deleted =
+        await computerService.deleteComputer(id);
+
       if (!deleted) {
         return res.status(404).json({
           status: 'error',
           message: 'Không tìm thấy máy trạm để xóa'
         });
       }
+
       return res.json({
         status: 'success',
         message: 'Xóa máy trạm thành công'
@@ -89,9 +115,13 @@ class ComputerController {
     }
   }
 
+
+  // GET /api/computers/hardware-specs
   async getHardwareSpecs(req, res, next) {
     try {
-      const data = await computerService.getHardwareSpecs();
+      const data =
+        await computerService.getHardwareSpecs();
+
       return res.json({
         status: 'success',
         data,
@@ -102,13 +132,232 @@ class ComputerController {
     }
   }
 
+
+  // POST /api/computers/hardware-specs
   async createHardwareSpec(req, res, next) {
     try {
-      const newSpec = await computerService.createHardwareSpec(req.body);
+      const newSpec =
+        await computerService.createHardwareSpec(req.body);
+
       return res.status(201).json({
         status: 'success',
         data: newSpec,
         message: 'Thêm cấu hình máy mới thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // POST /api/machines/:machineId/login
+  async login(req, res, next) {
+    try {
+      const { machineId } = req.params;
+      const { username } = req.body;
+
+      if (!username) {
+        return res.status(400).json({
+          error: 'Username is required'
+        });
+      }
+
+      const machine = machineStore.get(machineId);
+
+      if (!machine || !machine.socketId) {
+        return res.status(404).json({
+          error: 'Machine is offline or not registered'
+        });
+      }
+
+      console.log(
+        `[REST API] Triggering session:login ` +
+        `for machine ${machineId} ` +
+        `with user '${username}'`
+      );
+
+      computerSocketService.login(
+        machineId,
+        username
+      );
+
+      return res.json({
+        success: true,
+        message: `Login request sent to ${machineId}`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // POST /api/machines/:machineId/logout
+  async logout(req, res, next) {
+    try {
+      const { machineId } = req.params;
+
+      const machine = machineStore.get(machineId);
+
+      if (!machine || !machine.socketId) {
+        return res.status(404).json({
+          error: 'Machine is offline or not registered'
+        });
+      }
+
+      console.log(
+        `[REST API] Triggering session:logout ` +
+        `for machine ${machineId}`
+      );
+
+      computerSocketService.logout(machineId);
+
+      return res.json({
+        success: true,
+        message: `Logout request sent to ${machineId}`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // POST /api/machines/:machineId/command
+  async sendCommand(req, res, next) {
+    try {
+      const { machineId } = req.params;
+      const { command, message } = req.body;
+
+      if (!command) {
+        return res.status(400).json({
+          error: 'Command is required'
+        });
+      }
+      console.log("MAchineID" + machineId);
+      const machine = machineStore.get(machineId);
+
+      if (!machine || !machine.socketId) {
+        return res.status(404).json({
+          error: 'Machine is offline or not registered'
+        });
+      }
+
+      console.log(
+        `[REST API] Sending command '${command}' ` +
+        `to machine ${machineId}`
+      );
+
+      computerSocketService.sendCommand(
+        machineId,
+        command,
+        message
+      );
+
+      return res.json({
+        success: true,
+        message:
+          `Command '${command}' sent to ${machineId}`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // POST /api/machines/:machineId/notification
+  async sendNotification(req, res, next) {
+    try {
+      const { machineId } = req.params;
+
+      const {
+        title,
+        message,
+        durationSeconds
+      } = req.body;
+
+      if (!message) {
+        return res.status(400).json({
+          error: 'Message is required'
+        });
+      }
+
+      const machine = machineStore.get(machineId);
+
+      if (!machine || !machine.socketId) {
+        return res.status(404).json({
+          error: 'Machine is offline or not registered'
+        });
+      }
+
+      computerSocketService.sendNotification(
+        machineId,
+        title || 'Thông báo hệ thống',
+        message,
+        durationSeconds || 5
+      );
+
+      return res.json({
+        success: true,
+        message:
+          `Notification sent to ${machineId}`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // POST /api/commands/broadcast
+  async broadcastCommand(req, res, next) {
+    try {
+      const {
+        type,
+        command,
+        title,
+        message
+      } = req.body;
+
+      // Broadcast notification
+      if (type === 'notification' || message) {
+        computerSocketService.broadcastNotification(
+          title || 'Thông báo toàn hệ thống',
+          message || '',
+          5
+        );
+
+        console.log(
+          '[REST API] Broadcasted notification ' +
+          'to all machines'
+        );
+
+        return res.json({
+          success: true,
+          message:
+            'Broadcast notification sent to all machines'
+        });
+      }
+
+      // Broadcast command
+      if (command) {
+        computerSocketService.broadcastCommand(
+          command
+        );
+
+        console.log(
+          `[REST API] Broadcasted command '${command}' ` +
+          `to all machines`
+        );
+
+        return res.json({
+          success: true,
+          message:
+            `Broadcast command '${command}' ` +
+            `sent to all machines`
+        });
+      }
+
+      return res.status(400).json({
+        error:
+          'Invalid broadcast request parameters'
       });
     } catch (error) {
       next(error);

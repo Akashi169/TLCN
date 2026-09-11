@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-
+const http = require('http');
 // Kéo toàn bộ cấu hình Database và Models vào đây
 const db = require('./src/models');
 // Import migration runner & seeder
@@ -15,8 +15,10 @@ const memberRoutes = require('./src/routes/memberRoutes');
 const computerRoutes = require('./src/routes/computerRoutes');
 const promotionRoutes = require('./src/routes/promotionRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
+const { initSocket } = require('./src/sockets');
 
 const errorHandler = require('./src/middleware/errorHandler');
+const computerSocketService = require('./src/services/computerSocketService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -40,7 +42,21 @@ app.use('/api/transactions', transactionRoutes);
 
 // Centralized Error Handler
 app.use(errorHandler);
+const server = http.createServer(app);
 
+// Gắn Socket.IO vào HTTP Server
+const io = initSocket(server)
+
+// Khi có client kết nối
+io.on('connection', (socket) => {
+  console.log(`🔌 Client connected: ${socket.id}`);
+
+  // Client ngắt kết nối
+  socket.on('disconnect', () => {
+    console.log(`🔌 Client disconnected: ${socket.id}`);
+  });
+});
+computerSocketService.init(io);
 // CHẠY MIGRATIONS, ĐỒNG BỘ DATABASE & BẬT SERVER
 async function startServer() {
   try {
@@ -55,7 +71,7 @@ async function startServer() {
     await seedData(db);
 
     // 4. Bật server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Server is running on http://localhost:${PORT}`);
     });
   } catch (err) {
