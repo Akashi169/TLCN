@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 25.2.1
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: |
             backend/package-lock.json
@@ -60,7 +60,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 25.2.1
+          node-version: 22
 
       - name: Run Backend Static Analysis / Linting
         run: |
@@ -91,7 +91,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 25.2.1
+          node-version: 22
 
       - name: Execute Backend Unit Tests
         run: |
@@ -122,7 +122,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 25.2.1
+          node-version: 22
 
       - name: Scan Backend Dependencies Security (NPM Audit)
         run: |
