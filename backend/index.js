@@ -15,6 +15,7 @@ const memberRoutes = require('./src/routes/memberRoutes');
 const computerRoutes = require('./src/routes/computerRoutes');
 const promotionRoutes = require('./src/routes/promotionRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
+const healthRoutes = require('./src/routes/healthRoutes');
 
 const errorHandler = require('./src/middleware/errorHandler');
 
@@ -24,6 +25,10 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Health Check Endpoint (dùng cho Load Balancer & Monitoring System)
+app.use('/health', healthRoutes);
+app.use('/api/health', healthRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # =========================================================
+  # 1. Database Service: MySQL 8.0
+  # =========================================================
+  mysql:
+    image: mysql:8.0
+    container_name: nexus_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-12345678910}
+      MYSQL_DATABASE: ${DB_NAME:-game}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-12345678910}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - nexus_network
+
+  # =========================================================
+  # 2. Backend Service: Express API (NEXUS Cloud Cyber OS)
+  # =========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexus_backend
+    restart: always
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-12345678910}
+      DB_NAME: ${DB_NAME:-game}
+      JWT_SECRET: ${JWT_SECRET:-nexus_game_cloud_secret_key_2026_super_secret}
+    ports:
+      - "3001:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - nexus_network
+
+  # =========================================================
+  # 3. Frontend Service: Vite / React + Nginx SPA
+  # =========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexus_frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - nexus_network
+
+  # =========================================================
+  # 4. Code Quality & Security: SonarQube (Community Open-Source)
+  # =========================================================
+  sonarqube:
+    image: sonarqube:community
+    container_name: nexus_sonarqube
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - nexus_network
+
+networks:
+  nexus_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
+    driver: local

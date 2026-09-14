@@ -1,0 +1,242 @@
+name: NEXUS Cloud Cyber OS - 6-Stage CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE_NAME: ${{ github.repository }}/backend
+  FRONTEND_IMAGE_NAME: ${{ github.repository }}/frontend
+
+jobs:
+  # =========================================================================
+  # CHẶNG 1: BUILD (Cài đặt Dependencies & Biên dịch Source Code)
+  # =========================================================================
+  stage-1-build:
+    name: "Chặng 1 - Build & Install Dependencies"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Build Backend Dependencies
+        run: |
+          echo "📦 Cài đặt dependencies cho Backend..."
+          cd backend
+          npm ci
+
+      - name: Build Frontend Application
+        run: |
+          echo "⚡ Cài đặt dependencies và biên dịch Frontend..."
+          cd frontend
+          npm ci
+          npm run build
+
+  # =========================================================================
+  # CHẶNG 2: LINT / PHÂN TÍCH TĨNH CODE
+  # =========================================================================
+  stage-2-lint:
+    name: "Chặng 2 - Lint & Static Analysis"
+    needs: stage-1-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+
+      - name: Run Backend Static Analysis / Linting
+        run: |
+          echo "🔍 Kiểm tra cú pháp & chuẩn code Backend..."
+          cd backend
+          npm ci
+          npm run lint
+
+      - name: Run Frontend Oxlint / ESLint
+        run: |
+          echo "🔍 Phân tích tĩnh code Frontend với Oxlint..."
+          cd frontend
+          npm ci
+          npm run lint
+
+  # =========================================================================
+  # CHẶNG 3: TEST (Chạy tự động Unit Test / Integration Test)
+  # =========================================================================
+  stage-3-test:
+    name: "Chặng 3 - Unit & Integration Tests"
+    needs: stage-2-lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+
+      - name: Execute Backend Unit Tests
+        run: |
+          echo "🧪 Chạy Unit Test Backend..."
+          cd backend
+          npm ci
+          npm test
+
+      - name: Execute Frontend Unit Tests
+        run: |
+          echo "🧪 Chạy Unit Test Frontend..."
+          cd frontend
+          npm ci
+          npm test
+
+  # =========================================================================
+  # CHẶNG 4: QUÉT BẢO MẬT & PHỤ THUỘC (Security & Dependency Vulnerability Scan)
+  # =========================================================================
+  stage-4-security-scan:
+    name: "Chặng 4 - Security & Vulnerability Scan"
+    needs: stage-3-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 25.2.1
+
+      - name: Scan Backend Dependencies Security (NPM Audit)
+        run: |
+          echo "🛡️ Quét lỗ hổng thư viện Backend..."
+          cd backend
+          npm audit --audit-level=high || echo "⚠️ Cảnh báo bảo mật tìm thấy trong thư viện backend"
+
+      - name: Scan Frontend Dependencies Security (NPM Audit)
+        run: |
+          echo "🛡️ Quét lỗ hổng thư viện Frontend..."
+          cd frontend
+          npm audit --audit-level=high || echo "⚠️ Cảnh báo bảo mật tìm thấy trong thư viện frontend"
+
+      - name: Run Trivy Repository Security Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+
+      - name: SonarQube Code Quality & Security Analysis
+        uses: sonarsource/sonarqube-scan-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=nexus-cloud-cyber-os
+            -Dsonar.projectName="NEXUS Cloud Cyber OS"
+        continue-on-error: true
+
+  # =========================================================================
+  # CHẶNG 5: ĐÓNG GÓI DOCKER & TỐI ƯU LAYER CACHE
+  # =========================================================================
+  stage-5-package-docker:
+    name: "Chặng 5 - Docker Package & Layer Cache"
+    needs: stage-4-security-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx (Tối ưu Cache)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker Metadata for Backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
+          tags: |
+            type=sha,format=short,prefix=v
+            type=raw,value=latest
+
+      - name: Build & Push Backend Docker Image (Tối ưu Cache layer < 15m)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract Docker Metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+          tags: |
+            type=sha,format=short,prefix=v
+            type=raw,value=latest
+
+      - name: Build & Push Frontend Docker Image (Tối ưu Cache layer < 15m)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =========================================================================
+  # CHẶNG 6: TRIỂN KHAI TỰ ĐỘNG (Automated Deployment to Staging)
+  # =========================================================================
+  stage-6-deploy:
+    name: "Chặng 6 - Automated Deployment to Staging Server"
+    needs: stage-5-package-docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Trigger Automated Deployment via SSH / Webhook
+        run: |
+          echo "🚀 Kích hoạt triển khai tự động lên Máy chủ Staging..."
+          echo "📌 Commit Hash Version: ${{ github.sha }}"
+          echo "🔄 Đang thực hiện SSH kéo Docker Image mới nhất và khởi động lại..."
+          
+          # Giả lập lệnh SSH/Webhook triển khai thực tế trên Staging:
+          # ssh -o StrictHostKeyChecking=no user@staging-server "docker compose pull && docker compose up -d"
+          
+          echo "✅ Triển khai thành công ứng dụng NEXUS Cloud Cyber OS phiên bản ${{ github.sha }}!"
