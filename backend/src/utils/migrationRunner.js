@@ -34,7 +34,7 @@ const runMigrations = async () => {
 
     // Clean up old enum values in users table before altering ENUM column
     try {
-      await db.sequelize.query("UPDATE `users` SET `role` = 'EMPLOYEE' WHERE `role` = 'STAFF'");
+      await db.sequelize.query("UPDATE `users` SET `role` = 'EMPLOYEE' WHERE `role` = 'EMPLOYEE'");
       await db.sequelize.query("UPDATE `users` SET `role` = 'MEMBER' WHERE `role` = 'CUSTOMER'");
       await db.sequelize.query("UPDATE `users` SET `status` = 'ACTIVE' WHERE `status` = 'SUSPENDED'");
     } catch (e) {
@@ -49,6 +49,12 @@ const runMigrations = async () => {
     // 3. pricing_plan: price -> price_per_hour
     await ensureColumn('pricing_plan', 'price', 'price_per_hour', 'DECIMAL(10, 2) NOT NULL DEFAULT 10000.00');
     await ensureColumn('pricing_plan', null, 'plan_type', "ENUM('LOCAL', 'REMOTE') NOT NULL DEFAULT 'LOCAL'");
+    await ensureColumn('pricing_plan', null, 'priority', 'INT DEFAULT 0');
+    await ensureColumn('pricing_plan', null, 'start_time', 'TIME NULL');
+    await ensureColumn('pricing_plan', null, 'end_time', 'TIME NULL');
+    await ensureColumn('pricing_plan', null, 'apply_date', 'DATE NULL');
+    await ensureColumn('pricing_plan', null, 'is_active', 'TINYINT(1) DEFAULT 1');
+
 
     // 4. combo_package: duration_time -> duration_minutes
     await ensureColumn('combo_package', 'duration_time', 'duration_minutes', 'INT NOT NULL DEFAULT 60');
@@ -58,9 +64,11 @@ const runMigrations = async () => {
     await ensureColumn('membership_rank', null, 'rank_level', 'INT NOT NULL DEFAULT 1');
     await ensureColumn('membership_rank', null, 'discount_percent', 'DECIMAL(5, 2) DEFAULT 0.00');
 
-    // 6. computer: ip_address, is_remote_enabled
+    // 6. computer: ip_address, mac_address, is_remote_enabled
     await ensureColumn('computer', null, 'ip_address', 'VARCHAR(50) NULL');
+    await ensureColumn('computer', null, 'mac_address', 'VARCHAR(50) NULL');
     await ensureColumn('computer', null, 'is_remote_enabled', 'TINYINT(1) DEFAULT 0');
+
 
     // 7. financial_transaction: member_id -> used_by
     await ensureColumn('financial_transaction', 'member_id', 'used_by', 'INT NOT NULL DEFAULT 1');

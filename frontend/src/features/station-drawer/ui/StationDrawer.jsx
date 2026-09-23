@@ -1,24 +1,99 @@
-import React from 'react';
-import { X, Power, Lock, Unlock, ArrowRightLeft, CreditCard, Clock, User, Gamepad2, ShieldAlert, Cpu } from 'lucide-react';
-import { STATION_TYPES } from '../../../shared/data/mockData';
+import React, { useState } from 'react';
+import { X, Power, Lock, Unlock, ArrowRightLeft, Clock, User, Gamepad2, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
+import { STATION_TYPES } from '../../../shared/constants/stationConstants';
 
-export default function StationDrawer({ station, isOpen, onClose }) {
+export default function StationDrawer({ station, isOpen, onClose, onAction, onSwitchStation, availableStations = [] }) {
+    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+    const [selectedTargetId, setSelectedTargetId] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [toastMessage, setToastMessage] = useState(null);
+
     if (!station || !isOpen) return null;
 
+    const currentStatusUpper = String(station.status || '').toUpperCase();
+    const isOffline = currentStatusUpper === 'OFFLINE';
+    const isOnline = currentStatusUpper === 'ONLINE' || currentStatusUpper === 'READY';
+    const isLocked = currentStatusUpper === 'LOCKED' || currentStatusUpper === 'PAUSE';
+
     const typeDef = STATION_TYPES[station.type] || {
-        label: 'Sẵn sàng',
-        color: 'slate',
-        bg: 'bg-slate-100',
-        text: 'text-slate-600',
-        border: 'border-slate-200'
+        label: isOffline ? 'Tắt nguồn' : isLocked ? 'Tạm khóa' : 'Sẵn sàng',
+        color: isOffline ? 'slate' : isLocked ? 'amber' : 'emerald',
+        bg: isOffline ? 'bg-slate-100' : isLocked ? 'bg-amber-100' : 'bg-emerald-100',
+        text: isOffline ? 'text-slate-600' : isLocked ? 'text-amber-900' : 'text-emerald-950',
+        border: isOffline ? 'border-slate-300' : isLocked ? 'border-amber-300' : 'border-emerald-300'
     };
+
+    const showToast = (msg, isError = false) => {
+        setToastMessage({ text: msg, isError });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    const handlePowerAction = async (targetStatus) => {
+        if (!onAction) return;
+        setIsSubmitting(true);
+        try {
+            await onAction(station.computer_id || station.id, targetStatus);
+            showToast(`Đã gửi lệnh ${targetStatus} tới máy ${station.id} thành công!`);
+            // Automatically close drawer upon successful control action
+            setTimeout(() => {
+                onClose();
+            }, 300);
+        } catch (error) {
+            showToast(error.message || 'Lỗi khi gửi lệnh điều khiển máy', true);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleConfirmSwitch = async () => {
+        if (!selectedTargetId) {
+            showToast('Vui lòng chọn máy đích để chuyển!', true);
+            return;
+        }
+        if (!onSwitchStation) return;
+
+        setIsSubmitting(true);
+        try {
+            await onSwitchStation(station.computer_id || station.id, selectedTargetId, station.member_id);
+            showToast(`Đã chuyển khách từ ${station.id} sang máy ${selectedTargetId} thành công!`);
+            setIsSwitchModalOpen(false);
+            onClose();
+        } catch (error) {
+            showToast(error.message || 'Lỗi khi thực hiện chuyển trạm máy', true);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const readyStations = availableStations.filter(
+        (s) => s.computer_id !== station.computer_id && (String(s.status).toUpperCase() === 'ONLINE' || s.type === 'ready')
+    );
 
     return (
         <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end transition-opacity duration-300">
+            {/* Main Drawer Container */}
             <div
-                className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300"
+                className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300 relative"
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Toast Notification inside Drawer */}
+                {toastMessage && (
+                    <div
+                        className={`absolute top-4 left-4 right-4 z-50 p-3 rounded-xl border font-semibold text-xs flex items-center gap-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 ${
+                            toastMessage.isError
+                                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        }`}
+                    >
+                        {toastMessage.isError ? (
+                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        ) : (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        )}
+                        <span>{toastMessage.text}</span>
+                    </div>
+                )}
+
                 <div className="space-y-6">
                     {/* Header Drawer */}
                     <div className="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -35,7 +110,7 @@ export default function StationDrawer({ station, isOpen, onClose }) {
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-colors"
+                            className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-colors cursor-pointer"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -43,24 +118,41 @@ export default function StationDrawer({ station, isOpen, onClose }) {
 
                     {/* Quick Control Action Buttons */}
                     <div className="grid grid-cols-2 gap-2.5">
-                        <button className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 font-bold text-xs transition">
-                            <Power className="w-4 h-4" /> Bật / Khởi động
+                        <button
+                            disabled={isSubmitting || isOnline}
+                            onClick={() => handlePowerAction('ONLINE')}
+                            className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-700 border border-emerald-200/80 font-bold text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <Power className="w-4 h-4" /> Bật máy
                         </button>
-                        <button className="flex items-center justify-center gap-2 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 font-bold text-xs transition">
-                            <Lock className="w-4 h-4" /> Tạm khóa máy
+                        <button
+                            disabled={isSubmitting || isOffline}
+                            onClick={() => handlePowerAction(isLocked ? 'ONLINE' : 'LOCKED')}
+                            className="flex items-center justify-center gap-2 p-3 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-700 border border-amber-200/80 font-bold text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            {isLocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                            {isLocked ? 'Mở khóa máy' : 'Tạm khóa máy'}
                         </button>
-                        <button className="flex items-center justify-center gap-2 p-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200/80 font-bold text-xs transition">
+                        <button
+                            disabled={isSubmitting || isOffline}
+                            onClick={() => setIsSwitchModalOpen(true)}
+                            className="flex items-center justify-center gap-2 p-3 rounded-xl bg-sky-50 hover:bg-sky-100 active:scale-95 text-sky-700 border border-sky-200/80 font-bold text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
                             <ArrowRightLeft className="w-4 h-4" /> Chuyển máy
                         </button>
-                        <button className="flex items-center justify-center gap-2 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 font-bold text-xs transition">
-                            <ShieldAlert className="w-4 h-4" /> Tắt máy khẩn cấp
+                        <button
+                            disabled={isSubmitting || isOffline}
+                            onClick={() => handlePowerAction('OFFLINE')}
+                            className="flex items-center justify-center gap-2 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-200/80 font-bold text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <Power className="w-4 h-4" /> Tắt máy
                         </button>
                     </div>
 
                     {/* Active Session Info */}
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3">
                         <h4 className="text-xs font-extrabold uppercase text-slate-400 font-mono tracking-wider">Thông Tin Phiên Sử Dụng</h4>
-                        
+
                         <div className="flex items-center justify-between text-xs py-1 border-b border-slate-200/50">
                             <span className="text-slate-500 flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-slate-400" /> Tên người chơi:</span>
                             <span className="font-bold text-slate-800">{station.user || 'Chưa đăng nhập'}</span>
@@ -74,45 +166,78 @@ export default function StationDrawer({ station, isOpen, onClose }) {
                             <span className="font-mono font-bold text-emerald-600">{station.time || '00:00'}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs py-1">
-                            <span className="text-slate-500 flex items-center gap-1.5"><Cpu className="w-3.5 h-3.5 text-slate-400" /> Telemetry / Nhiệt độ:</span>
-                            <span className="font-mono text-slate-700">{station.telemetry || '32°C • Normal'}</span>
+                            <span className="text-slate-500 flex items-center gap-1.5"><Cpu className="w-3.5 h-3.5 text-slate-400" /> Telemetry / Loại node:</span>
+                            <span className="font-mono text-slate-700">{station.telemetry || 'Standard Node'}</span>
                         </div>
                     </div>
+                </div>
 
-                    {/* Member Quick Balance Topup */}
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white space-y-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
-                                <CreditCard className="w-3.5 h-3.5" /> Nạp tiền nhanh tài khoản
-                            </span>
-                            <span className="text-[10px] bg-indigo-500/30 px-2 py-0.5 rounded text-indigo-200">PAYMENT</span>
+                {/* Footer Action - Clean single close button */}
+                <div className="pt-4 border-t border-slate-100">
+                    <button
+                        onClick={onClose}
+                        className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                    >
+                        Đóng cửa sổ
+                    </button>
+                </div>
+            </div>
+
+            {/* Switch Station Modal */}
+            {isSwitchModalOpen && (
+                <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 space-y-4 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between border-b pb-3">
+                            <div className="flex items-center gap-2">
+                                <ArrowRightLeft className="w-5 h-5 text-sky-600" />
+                                <h4 className="font-bold text-slate-800 text-sm">Chuyển Trạm Máy</h4>
+                            </div>
+                            <button
+                                onClick={() => setIsSwitchModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                placeholder="Nhập số tiền (VD: 50000)"
-                                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                            />
-                            <button className="px-3 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg text-xs font-bold transition">
-                                Nạp Ngay
+
+                        <p className="text-xs text-slate-600">
+                            Chuyển phiên chơi hiện tại từ máy <span className="font-bold text-slate-800">{station.id}</span> sang máy rảnh khác:
+                        </p>
+
+                        <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase font-mono">Chọn máy đích (Đang Sẵn Sàng):</label>
+                            <select
+                                value={selectedTargetId}
+                                onChange={(e) => setSelectedTargetId(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            >
+                                <option value="">-- Chọn máy sẵn sàng --</option>
+                                {readyStations.map((st) => (
+                                    <option key={st.computer_id || st.id} value={st.computer_id || st.id}>
+                                        {st.id} ({st.zone_name || 'Khu vực'} - {st.price_per_hour?.toLocaleString()}đ/h)
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button
+                                onClick={() => setIsSwitchModalOpen(false)}
+                                className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                disabled={isSubmitting || !selectedTargetId}
+                                onClick={handleConfirmSwitch}
+                                className="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition disabled:opacity-50 shadow-md cursor-pointer"
+                            >
+                                Xác nhận chuyển
                             </button>
                         </div>
                     </div>
                 </div>
-
-                {/* Footer Action */}
-                <div className="pt-4 border-t border-slate-100 flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition"
-                    >
-                        Đóng
-                    </button>
-                    <button className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition">
-                        Lưu Thay Đổi
-                    </button>
-                </div>
-            </div>
+            )}
         </div>
     );
 }

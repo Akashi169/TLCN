@@ -2,10 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../widgets/header/Header';
 import Sidebar from '../../widgets/sidebar/Sidebar';
 import Footer from '../../widgets/footer/Footer';
-
-// Machine FSD UI Components & Data
 import machineService from '../../shared/api/machine.service';
-import { MOCK_MACHINES, MOCK_MACHINE_METRICS } from '../../features/machines/model/mockMachinesData';
 import MachineKpiCards from '../../features/machines/ui/MachineKpiCards';
 import MachineFilterBar from '../../features/machines/ui/MachineFilterBar';
 import MachineBulkActionBar from '../../features/machines/ui/MachineBulkActionBar';
@@ -21,8 +18,8 @@ import StationCard from '../../entities/station/ui/StationCard';
  * Built with FSD Architecture, Clean Code & DRY Principles
  */
 export default function MachineManagementPage({ user, onLogout }) {
-  const [machines, setMachines] = useState(MOCK_MACHINES);
-  const [metrics, setMetrics] = useState(MOCK_MACHINE_METRICS);
+  const [machines, setMachines] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [zoneFilter, setZoneFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -33,16 +30,46 @@ export default function MachineManagementPage({ user, onLogout }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Auto-fetch machines from Backend API on mount
+  // Auto-fetch machines from Backend API CSDL on mount
   useEffect(() => {
     const fetchMachineData = async () => {
+      setLoading(true);
       const data = await machineService.getMachines();
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         setMachines(data);
       }
+      setLoading(false);
     };
     fetchMachineData();
   }, []);
+
+  // Compute live KPI metrics dynamically from CSDL machines (useMemo prevents crash & unnecessary re-renders)
+  const metrics = useMemo(() => {
+    const totalMachines = machines.length;
+    const onlineCount = machines.filter(
+      (m) => m.status === 'online' || m.status === 'ONLINE'
+    ).length;
+    const inUseCount = machines.filter(
+      (m) => m.status === 'in-use' || m.status === 'IN_USE'
+    ).length;
+    const maintenanceCount = machines.filter(
+      (m) => m.status === 'maintenance' || m.status === 'MAINTENANCE'
+    ).length;
+    const cloudCount = machines.filter(
+      (m) => m.status === 'remote' || m.status === 'REMOTE'
+    ).length;
+    const occupancyRate =
+      totalMachines > 0 ? ((inUseCount / totalMachines) * 100).toFixed(1) : '0.0';
+
+    return {
+      totalMachines,
+      onlineCount,
+      inUseCount,
+      maintenanceCount,
+      cloudCount,
+      occupancyRate
+    };
+  }, [machines]);
 
   // Filtered Machines Calculation
   const filteredMachines = useMemo(() => {
@@ -74,6 +101,21 @@ export default function MachineManagementPage({ user, onLogout }) {
       return matchSearch && matchZone && matchStatus && matchHardware;
     });
   }, [machines, searchQuery, zoneFilter, statusFilter, hardwareFilter]);
+
+  // Reset to Page 1 whenever filter or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, zoneFilter, statusFilter, hardwareFilter, pageSize]);
+
+  // Real Dynamic Pagination Logic
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredMachines.length / pageSize) || 1;
+  }, [filteredMachines.length, pageSize]);
+
+  const paginatedMachines = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredMachines.slice(startIndex, startIndex + pageSize);
+  }, [filteredMachines, currentPage, pageSize]);
 
   // Handle Multi-Selection
   const handleToggleSelect = (id) => {
@@ -133,6 +175,7 @@ export default function MachineManagementPage({ user, onLogout }) {
     }
   };
 
+  // Fix App Crash: Only update machines state. metrics updates automatically via useMemo([machines])
   const handleCreateMachine = (newMachineData) => {
     const newMachine = {
       id: newMachineData.name || `PC-${Math.floor(10 + Math.random() * 90)}`,
@@ -153,11 +196,6 @@ export default function MachineManagementPage({ user, onLogout }) {
     };
 
     setMachines((prev) => [newMachine, ...prev]);
-    setMetrics((prev) => ({
-      ...prev,
-      totalMachines: prev.totalMachines + 1,
-      onlineCount: prev.onlineCount + 1
-    }));
   };
 
   return (
@@ -235,10 +273,14 @@ export default function MachineManagementPage({ user, onLogout }) {
               onClearSelection={() => setSelectedIds([])}
             />
 
-            {/* Content: Table View or Grid View */}
-            {viewMode === 'table' ? (
+            {/* Content: Table View or Grid View with Loading Skeleton */}
+            {loading ? (
+              <div className="p-12 text-center text-slate-500 font-mono text-xs bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center gap-2">
+                <span className="animate-spin text-slate-700">⏳</span> Đang tải dữ liệu máy trạm từ CSDL...
+              </div>
+            ) : viewMode === 'table' ? (
               <MachineTable
-                machines={filteredMachines}
+                machines={paginatedMachines}
                 selectedIds={selectedIds}
                 onToggleSelect={handleToggleSelect}
                 onToggleSelectAll={handleToggleSelectAll}
@@ -253,7 +295,7 @@ export default function MachineManagementPage({ user, onLogout }) {
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3.5 bg-white p-4 rounded-xl border border-slate-200">
-                {filteredMachines.map((m) => (
+                {paginatedMachines.map((m) => (
                   <StationCard
                     key={m.id}
                     station={{
@@ -270,12 +312,12 @@ export default function MachineManagementPage({ user, onLogout }) {
               </div>
             )}
 
-            {/* Pagination */}
+            {/* Real Dynamic Pagination */}
             <MachinePagination
               currentPage={currentPage}
-              totalPages={15}
+              totalPages={totalPages}
               pageSize={pageSize}
-              totalItems={metrics.totalMachines}
+              totalItems={filteredMachines.length}
               selectedCount={selectedIds.length}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}

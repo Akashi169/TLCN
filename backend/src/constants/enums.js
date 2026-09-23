@@ -23,6 +23,7 @@ const ComputerStatus = Object.freeze({
   LOCKED: 'LOCKED',
   MAINTENANCE: 'MAINTENANCE',
   PAUSE: 'PAUSE',
+  REMOTE: 'REMOTE',
 });
 
 const OrderStatus = Object.freeze({
@@ -55,7 +56,11 @@ const TransactionCategory = Object.freeze({
 const SessionType = Object.freeze({
   LOCAL: 'LOCAL',
   REMOTE: 'REMOTE',
+  MEMBER: 'MEMBER',
+  GUEST: 'GUEST',
+  SYSTEM: 'SYSTEM',
 });
+
 
 const ComboTimeStatus = Object.freeze({
   ACTIVE: 'ACTIVE',

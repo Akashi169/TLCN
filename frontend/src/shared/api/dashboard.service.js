@@ -1,58 +1,56 @@
-import authService from './auth.service';
-import { ZONES } from '../data/mockData';
+import { apiClient } from './client';
+import { mapComputerToMachineDTO } from '../adapters/machineAdapter';
 
 export const dashboardService = {
-    async getOverview() {
-        try {
-            const res = await authService.fetchWithAuth('/dashboard/overview');
-            if (res && res.status === 'success' && res.data) {
-                return res.data;
-            }
-        } catch (error) {
-            console.warn('⚡ Không thể kết nối API Dashboard Backend, dùng dữ liệu Model chuẩn:', error.message);
-        }
+  /**
+   * Fetch live dashboard overview & room layout grid directly from backend CSDL Seeder
+   */
+  async getOverview() {
+    try {
+      const res = await apiClient.get('/computers/grid');
+      if (res && res.status === 'success' && res.data) {
+        const gridData = res.data;
+        const summary = gridData.summary || {};
+        const zonesData = gridData.zones || [];
 
-        let totalStations = 0;
-        let localCount = 0;
-        let cloudCount = 0;
-        let readyCount = 0;
-        let maintCount = 0;
-
-        ZONES.forEach(zone => {
-            totalStations += zone.stations.length;
-            zone.stations.forEach(st => {
-                if (st.type === 'local') localCount++;
-                else if (st.type === 'cloud') cloudCount++;
-                else if (st.type === 'ready') readyCount++;
-                else if (st.type === 'maint') maintCount++;
-            });
-        });
-
-        if (totalStations < 100) {
-            totalStations = 120;
-            localCount = 56;
-            cloudCount = 28;
-            readyCount = 28;
-            maintCount = 8;
-        }
-
-        const occupiedCount = localCount + cloudCount;
-        const occupancyRate = ((occupiedCount / totalStations) * 100).toFixed(1);
+        const formattedZones = zonesData.map((z) => ({
+          id: `zone-${z.zone_id}`,
+          zone_id: z.zone_id,
+          name: z.zone_name,
+          price_per_hour: z.price_per_hour,
+          stations: (z.stations || []).map(mapComputerToMachineDTO)
+        }));
 
         return {
-            metrics: {
-                totalStations,
-                occupancyRate,
-                localCount,
-                cloudCount,
-                readyCount,
-                maintCount,
-                shiftRevenue: 14850000,
-                bootromStatus: 'ONLINE'
-            },
-            zones: ZONES
+          metrics: {
+            totalStations: summary.total || 0,
+            occupancyRate: summary.total > 0
+              ? ((summary.in_use / summary.total) * 100).toFixed(1)
+              : '0.0',
+            localCount: summary.in_use || 0,
+            cloudCount: summary.remote || 0,
+            readyCount: summary.online || 0,
+            maintCount: summary.maintenance || 0
+          },
+          zones: formattedZones
         };
+      }
+    } catch (error) {
+      console.warn('⚡ Không thể kết nối API /api/computers/grid:', error.message);
     }
+
+    return {
+      metrics: {
+        totalStations: 0,
+        occupancyRate: '0.0',
+        localCount: 0,
+        cloudCount: 0,
+        readyCount: 0,
+        maintCount: 0
+      },
+      zones: []
+    };
+  }
 };
 
 export default dashboardService;
