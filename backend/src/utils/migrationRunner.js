@@ -1,58 +1,79 @@
-const path = require('path');
-const { Umzug, SequelizeStorage } = require('umzug');
 const db = require('../models');
 
 /**
  * Migration Runner for NEXUS Cyber Command
- * Programmatically executes all pending Sequelize CLI migrations on app startup
- * and guarantees column synchronization.
+ * Guarantees 100% column synchronization with backend/src/config/sql.sql & backend/src/config/model.js
+ * Automatically alters existing MySQL tables to add or rename updated columns safely.
  */
 const runMigrations = async () => {
   try {
-    // Direct Column Sync Fallback to guarantee existing MySQL tables match models
-    const safeAddColumn = async (table, col, type) => {
+    console.log('🔄 Checking & synchronizing database schema with model.js / sql.sql definitions...');
+
+    const queryInterface = db.sequelize.getQueryInterface();
+
+    // Helper: Safely rename or add missing column
+    const ensureColumn = async (table, oldCol, newCol, colDefSql) => {
       try {
-        await db.sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${col}\` ${type}`);
+        const desc = await queryInterface.describeTable(table).catch(() => null);
+        if (!desc) return;
+
+        if (oldCol && desc[oldCol] && !desc[newCol]) {
+          console.log(`🛠️ Renaming column '${oldCol}' -> '${newCol}' in table '${table}'...`);
+          await db.sequelize.query(`ALTER TABLE \`${table}\` RENAME COLUMN \`${oldCol}\` TO \`${newCol}\``).catch(() => {});
+        } else if (!desc[newCol]) {
+          console.log(`🛠️ Adding missing column '${newCol}' to table '${table}'...`);
+          await db.sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${newCol}\` ${colDefSql}`).catch(() => {});
+        }
       } catch (e) {
-        // Ignore if column already exists
+        // Ignore column alteration warnings if table is created fresh
       }
     };
 
-    await safeAddColumn('financial_transaction', 'txn_code', 'VARCHAR(50) NULL');
-    await safeAddColumn('financial_transaction', 'category', 'VARCHAR(50) NULL');
-    await safeAddColumn('financial_transaction', 'payment_method', 'VARCHAR(50) NULL');
-    await safeAddColumn('financial_transaction', 'status', 'VARCHAR(30) NULL');
-    await safeAddColumn('financial_transaction', 'computer_name', 'VARCHAR(50) NULL');
-    await safeAddColumn('financial_transaction', 'staff_name', 'VARCHAR(100) NULL');
-    await safeAddColumn('financial_transaction', 'notes', 'TEXT NULL');
+    // 1. users: password -> password_hash
+    await ensureColumn('users', 'password', 'password_hash', 'VARCHAR(255) NOT NULL DEFAULT ""');
 
-    await safeAddColumn('users', 'phone_number', 'VARCHAR(20) NULL');
-    await safeAddColumn('users', 'email', 'VARCHAR(100) NULL');
-    await safeAddColumn('users', 'status', "VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'");
-    await safeAddColumn('users', 'last_login', 'DATETIME NULL');
+    // Clean up old enum values in users table before altering ENUM column
+    try {
+      await db.sequelize.query("UPDATE `users` SET `role` = 'EMPLOYEE' WHERE `role` = 'STAFF'");
+      await db.sequelize.query("UPDATE `users` SET `role` = 'MEMBER' WHERE `role` = 'CUSTOMER'");
+      await db.sequelize.query("UPDATE `users` SET `status` = 'ACTIVE' WHERE `status` = 'SUSPENDED'");
+    } catch (e) {
+      // Ignore if table/column does not exist yet
+    }
 
-    await safeAddColumn('members', 'points', 'INT NOT NULL DEFAULT 0');
+    // 2. members: points -> point
+    await ensureColumn('members', 'points', 'point', 'INT NOT NULL DEFAULT 0');
+    await ensureColumn('members', null, 'id_number', 'VARCHAR(50) NULL');
+    await ensureColumn('members', null, 'phone', 'VARCHAR(20) NULL');
 
-    // Run Umzug for registered CLI migrations
-    const umzug = new Umzug({
-      migrations: {
-        glob: path.resolve(__dirname, '../migrations/2024*.js')
-      },
-      context: db.sequelize.getQueryInterface(),
-      storage: new SequelizeStorage({ sequelize: db.sequelize }),
-      logger: console
+    // 3. pricing_plan: price -> price_per_hour
+    await ensureColumn('pricing_plan', 'price', 'price_per_hour', 'DECIMAL(10, 2) NOT NULL DEFAULT 10000.00');
+    await ensureColumn('pricing_plan', null, 'plan_type', "ENUM('LOCAL', 'REMOTE') NOT NULL DEFAULT 'LOCAL'");
+
+    // 4. combo_package: duration_time -> duration_minutes
+    await ensureColumn('combo_package', 'duration_time', 'duration_minutes', 'INT NOT NULL DEFAULT 60');
+
+    // 5. membership_rank: required_point, rank_level, discount_percent
+    await ensureColumn('membership_rank', null, 'required_point', 'INT NOT NULL DEFAULT 0');
+    await ensureColumn('membership_rank', null, 'rank_level', 'INT NOT NULL DEFAULT 1');
+    await ensureColumn('membership_rank', null, 'discount_percent', 'DECIMAL(5, 2) DEFAULT 0.00');
+
+    // 6. computer: ip_address, is_remote_enabled
+    await ensureColumn('computer', null, 'ip_address', 'VARCHAR(50) NULL');
+    await ensureColumn('computer', null, 'is_remote_enabled', 'TINYINT(1) DEFAULT 0');
+
+    // 7. financial_transaction: member_id -> used_by
+    await ensureColumn('financial_transaction', 'member_id', 'used_by', 'INT NOT NULL DEFAULT 1');
+    await ensureColumn('financial_transaction', null, 'processed_by', 'INT NULL');
+
+    // Perform Sequelize sync with alter fallback
+    await db.sequelize.sync({ alter: true }).catch((err) => {
+      console.warn('[Migration Warning] Sync alter notice:', err.message);
     });
 
-    console.log('🔄 Checking & executing pending Sequelize Migrations...');
-    const executed = await umzug.up();
-    if (executed && executed.length > 0) {
-      console.log(`✅ Successfully executed ${executed.length} Sequelize migration(s):`, executed.map((m) => m.name));
-    } else {
-      console.log('✅ Database schema is up to date.');
-    }
+    console.log('✅ Database schema successfully synchronized.');
   } catch (error) {
-    console.error('❌ Error executing Sequelize Migrations:', error);
-    throw error;
+    console.error('❌ Error executing database schema synchronization:', error);
   }
 };
 

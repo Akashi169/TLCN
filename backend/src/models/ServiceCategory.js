@@ -1,11 +1,21 @@
-module.exports = (sequelize, DataTypes) => {
-    const ServiceCategory = sequelize.define('ServiceCategory', {
-        category_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        name: { type: DataTypes.STRING(100), allowNull: false }
-    }, { tableName: 'service_category', timestamps: false });
+const { Model, DataTypes } = require('sequelize');
 
-    ServiceCategory.associate = (models) => {
-        ServiceCategory.hasMany(models.ServiceItem, { foreignKey: 'category_id' });
-    };
-    return ServiceCategory;
+class ServiceCategory extends Model {}
+
+module.exports = (sequelize) => {
+  ServiceCategory.init({
+    category_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING(100), allowNull: false }
+  }, {
+    sequelize,
+    modelName: 'ServiceCategory',
+    tableName: 'service_category',
+    timestamps: false
+  });
+
+  ServiceCategory.associate = (models) => {
+    ServiceCategory.hasMany(models.ServiceItem, { foreignKey: 'category_id' });
+  };
+
+  return ServiceCategory;
 };

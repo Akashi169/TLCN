@@ -1,56 +1,28 @@
-// src/models/User.js
-const { UserRole } = require('../constants/enums');
+const { Model, DataTypes } = require('sequelize');
+const { UserRole, UserStatus } = require('../constants/enums');
 
-module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define('User', {
-        user_id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-        },
-        username: {
-            type: DataTypes.STRING(50),
-            allowNull: false,
-            unique: true,
-        },
-        password: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-        },
-        full_name: {
-            type: DataTypes.STRING(100),
-            allowNull: false,
-        },
-        role: {
-            type: DataTypes.ENUM(...Object.values(UserRole)),
-            allowNull: false,
-            defaultValue: UserRole.CUSTOMER,
-        },
-        phone_number: {
-            type: DataTypes.STRING(20),
-            allowNull: true,
-        },
-        email: {
-            type: DataTypes.STRING(100),
-            allowNull: true,
-        },
-        status: {
-            type: DataTypes.ENUM('ACTIVE', 'LOCKED', 'SUSPENDED'),
-            allowNull: false,
-            defaultValue: 'ACTIVE',
-        },
-        last_login: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-    }, {
-        tableName: 'users',
-        timestamps: false,
-    });
+class User extends Model {}
 
-    User.associate = (models) => {
-        User.hasOne(models.Member, { foreignKey: 'member_id', as: 'memberProfile' });
-    };
+module.exports = (sequelize) => {
+  User.init({
+    user_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    username: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+    password_hash: { type: DataTypes.STRING(255), allowNull: false },
+    full_name: { type: DataTypes.STRING(100), allowNull: false },
+    role: { type: DataTypes.ENUM(...Object.values(UserRole)), allowNull: false },
+    status: { type: DataTypes.ENUM(...Object.values(UserStatus)), defaultValue: UserStatus.ACTIVE }
+  }, {
+    sequelize,
+    modelName: 'User',
+    tableName: 'users',
+    timestamps: false
+  });
 
-    return User;
+  User.associate = (models) => {
+    User.hasOne(models.Member, { foreignKey: 'member_id', onDelete: 'CASCADE', as: 'memberProfile' });
+    User.hasMany(models.ServiceOrder, { foreignKey: 'processed_by' });
+    User.hasMany(models.FinancialTransaction, { foreignKey: 'processed_by' });
+  };
+
+  return User;
 };

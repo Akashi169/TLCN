@@ -1,36 +1,33 @@
-// src/models/Computer.js
+const { Model, DataTypes } = require('sequelize');
 const { ComputerStatus } = require('../constants/enums');
 
-module.exports = (sequelize, DataTypes) => {
-    const Computer = sequelize.define('Computer', {
-        computer_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        computer_name: { type: DataTypes.STRING(50), allowNull: false, unique: true },
-        status: { 
-            type: DataTypes.ENUM(...Object.values(ComputerStatus)), 
-            allowNull: false,
-            defaultValue: ComputerStatus.OFFLINE 
-        },
-        zone_id: { type: DataTypes.INTEGER, allowNull: false },
-        cpu: { type: DataTypes.STRING(100), allowNull: true },
-        cpu_specs: { type: DataTypes.STRING(100), allowNull: true },
-        ram: { type: DataTypes.STRING(50), allowNull: true },
-        ram_specs: { type: DataTypes.STRING(100), allowNull: true },
-        gpu: { type: DataTypes.STRING(100), allowNull: true },
-        gpu_edition: { type: DataTypes.STRING(100), allowNull: true },
-        storage_type: { type: DataTypes.STRING(100), allowNull: true },
-        storage_specs: { type: DataTypes.STRING(100), allowNull: true },
-        boot_image: { type: DataTypes.STRING(150), allowNull: true },
-        cpu_temp: { type: DataTypes.INTEGER, allowNull: true },
-        gpu_temp: { type: DataTypes.INTEGER, allowNull: true },
-        fan_speed: { type: DataTypes.STRING(20), allowNull: true },
-        san_ping: { type: DataTypes.STRING(20), allowNull: true }
-    }, { tableName: 'computer', timestamps: false });
+class Computer extends Model {
+  async updateStatus(newStatus) {
+    this.status = newStatus;
+    await this.save();
+  }
+}
 
-    Computer.associate = (models) => {
-        Computer.belongsTo(models.ComputerZone, { foreignKey: 'zone_id' });
-        Computer.belongsToMany(models.Game, { through: 'computer_game', foreignKey: 'computer_id' });
-        Computer.hasMany(models.RentalSession, { foreignKey: 'computer_id' });
-    };
+module.exports = (sequelize) => {
+  Computer.init({
+    computer_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    computer_name: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+    ip_address: { type: DataTypes.STRING(50) },
+    status: { type: DataTypes.ENUM(...Object.values(ComputerStatus)), defaultValue: ComputerStatus.OFFLINE },
+    is_remote_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
+    zone_id: { type: DataTypes.INTEGER, allowNull: false }
+  }, {
+    sequelize,
+    modelName: 'Computer',
+    tableName: 'computer',
+    timestamps: false
+  });
 
-    return Computer;
+  Computer.associate = (models) => {
+    Computer.belongsTo(models.ComputerZone, { foreignKey: 'zone_id' });
+    Computer.belongsToMany(models.Game, { through: models.ComputerGame, foreignKey: 'computer_id' });
+    Computer.hasMany(models.ComputerStatusLog, { foreignKey: 'computer_id' });
+  };
+
+  return Computer;
 };

@@ -1,25 +1,30 @@
-// src/models/ServiceOrder.js
-const { OrderStatus } = require('../constants/enums');
+const { Model, DataTypes } = require('sequelize');
+const { OrderStatus, PaymentStatus } = require('../constants/enums');
 
-module.exports = (sequelize, DataTypes) => {
-    const ServiceOrder = sequelize.define('ServiceOrder', {
-        order_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-        status: { 
-            type: DataTypes.ENUM(...Object.values(OrderStatus)), 
-            allowNull: false,
-            defaultValue: OrderStatus.PENDING 
-        },
-        member_id: { type: DataTypes.INTEGER, allowNull: false },
-        session_id: { type: DataTypes.INTEGER }
-    }, { tableName: 'service_order', timestamps: false });
+class ServiceOrder extends Model {}
 
-    ServiceOrder.associate = (models) => {
-        ServiceOrder.belongsTo(models.Member, { foreignKey: 'member_id' });
-        ServiceOrder.belongsTo(models.RentalSession, { foreignKey: 'session_id' });
-        ServiceOrder.hasMany(models.ServiceOrderItem, { foreignKey: 'order_id' });
-        ServiceOrder.hasMany(models.FinancialTransaction, { foreignKey: 'order_id' });
-    };
+module.exports = (sequelize) => {
+  ServiceOrder.init({
+    order_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    status: { type: DataTypes.ENUM(...Object.values(OrderStatus)), defaultValue: OrderStatus.PENDING },
+    payment_status: { type: DataTypes.ENUM(...Object.values(PaymentStatus)), defaultValue: PaymentStatus.UNPAID },
+    used_by: { type: DataTypes.INTEGER, allowNull: false },
+    processed_by: { type: DataTypes.INTEGER }
+  }, {
+    sequelize,
+    modelName: 'ServiceOrder',
+    tableName: 'service_order',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false
+  });
 
-    return ServiceOrder;
+  ServiceOrder.associate = (models) => {
+    ServiceOrder.belongsTo(models.Member, { foreignKey: 'used_by' });
+    ServiceOrder.belongsTo(models.User, { foreignKey: 'processed_by' });
+    ServiceOrder.belongsToMany(models.ServiceItem, { through: models.ServiceOrderItem, foreignKey: 'order_id' });
+    ServiceOrder.hasOne(models.ComboTime, { foreignKey: 'order_id', onDelete: 'CASCADE' });
+  };
+
+  return ServiceOrder;
 };

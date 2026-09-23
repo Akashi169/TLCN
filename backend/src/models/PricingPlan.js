@@ -1,12 +1,33 @@
-module.exports = (sequelize, DataTypes) => {
-    const PricingPlan = sequelize.define('PricingPlan', {
-        pricing_plan_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        name: { type: DataTypes.STRING(100), allowNull: false },
-        price: { type: DataTypes.DECIMAL(10, 2), allowNull: false }
-    }, { tableName: 'pricing_plan', timestamps: false });
+const { Model, DataTypes } = require('sequelize');
+const { SessionType } = require('../constants/enums');
 
-    PricingPlan.associate = (models) => {
-        PricingPlan.hasMany(models.ComputerZone, { foreignKey: 'pricing_plan_id' });
-    };
-    return PricingPlan;
+class PricingPlan extends Model {
+  calculatePrice(minutes) {
+    return (parseFloat(this.price_per_hour) / 60) * minutes;
+  }
+}
+
+module.exports = (sequelize) => {
+  PricingPlan.init({
+    pricing_plan_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING(100), allowNull: false },
+    price_per_hour: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    plan_type: { type: DataTypes.ENUM(...Object.values(SessionType)), allowNull: false },
+    priority: { type: DataTypes.INTEGER, defaultValue: 0 },
+    start_time: { type: DataTypes.TIME },
+    end_time: { type: DataTypes.TIME },
+    apply_date: { type: DataTypes.DATEONLY },
+    is_active: { type: DataTypes.BOOLEAN, defaultValue: true }
+  }, {
+    sequelize,
+    modelName: 'PricingPlan',
+    tableName: 'pricing_plan',
+    timestamps: false
+  });
+
+  PricingPlan.associate = (models) => {
+    PricingPlan.belongsToMany(models.ComputerZone, { through: models.ZonePricingPlan, foreignKey: 'pricing_plan_id' });
+  };
+
+  return PricingPlan;
 };

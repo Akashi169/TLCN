@@ -1,50 +1,47 @@
-// src/models/Member.js
-// Đại diện cho bảng `members` - mở rộng của User với các thuộc tính riêng của khách hàng
-// Sử dụng pattern Table Inheritance: member_id = user_id (shared primary key)
-module.exports = (sequelize, DataTypes) => {
-    const Member = sequelize.define('Member', {
-        member_id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            // Không autoIncrement vì đây là FK trỏ tới users.user_id
-        },
-        real_balance: {
-            type: DataTypes.DECIMAL(15, 2),
-            defaultValue: 0.00,
-        },
-        bonus_balance: {
-            type: DataTypes.DECIMAL(15, 2),
-            defaultValue: 0.00,
-        },
-        rank_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        points: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0,
-        },
-    }, {
-        tableName: 'members',
-        timestamps: false,
-    });
+const { Model, DataTypes } = require('sequelize');
 
-    Member.associate = (models) => {
-        // Quan hệ 1-1 ngược lại với User (parent)
-        Member.belongsTo(models.User, { foreignKey: 'member_id', as: 'userInfo' });
+class Member extends Model {
+  topUp(amount, isBonus = false) {
+    if (isBonus) this.bonus_balance = parseFloat(this.bonus_balance || 0) + amount;
+    else this.real_balance = parseFloat(this.real_balance || 0) + amount;
+    return this.save();
+  }
 
-        // Hạng thành viên
-        Member.belongsTo(models.MembershipRank, { foreignKey: 'rank_id' });
+  deductRealBalance(amount) {
+    this.real_balance = parseFloat(this.real_balance || 0) - amount;
+    return this.save();
+  }
 
-        // Các phiên chơi của member
-        Member.hasMany(models.RentalSession, { foreignKey: 'member_id' });
+  updateProfile(phone, id_number) {
+    this.phone = phone;
+    this.id_number = id_number;
+    return this.save();
+  }
+}
 
-        // Các đơn hàng dịch vụ
-        Member.hasMany(models.ServiceOrder, { foreignKey: 'member_id' });
+module.exports = (sequelize) => {
+  Member.init({
+    member_id: { type: DataTypes.INTEGER, primaryKey: true },
+    id_number: { type: DataTypes.STRING(50) },
+    phone: { type: DataTypes.STRING(20) },
+    real_balance: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.00 },
+    bonus_balance: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.00 },
+    point: { type: DataTypes.INTEGER, defaultValue: 0 },
+    rank_id: { type: DataTypes.INTEGER }
+  }, {
+    sequelize,
+    modelName: 'Member',
+    tableName: 'members',
+    timestamps: false
+  });
 
-        // Lịch sử giao dịch tài chính
-        Member.hasMany(models.FinancialTransaction, { foreignKey: 'member_id' });
-    };
+  Member.associate = (models) => {
+    Member.belongsTo(models.User, { foreignKey: 'member_id', as: 'userInfo' });
+    Member.belongsTo(models.MembershipRank, { foreignKey: 'rank_id' });
+    Member.hasMany(models.ComputerStatusLog, { foreignKey: 'member_id' });
+    Member.hasMany(models.ServiceOrder, { foreignKey: 'used_by' });
+    Member.hasMany(models.FinancialTransaction, { foreignKey: 'used_by' });
+  };
 
-    return Member;
+  return Member;
 };

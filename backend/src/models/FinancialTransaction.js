@@ -1,86 +1,30 @@
-// src/models/FinancialTransaction.js
-const { TRANSACTION_TYPES, TRANSACTION_CATEGORIES, PAYMENT_METHODS, TRANSACTION_STATUS } = require('../utils/constants');
+const { Model, DataTypes } = require('sequelize');
+const { TransactionType, TransactionCategory } = require('../constants/enums');
 
-module.exports = (sequelize, DataTypes) => {
-    const FinancialTransaction = sequelize.define('FinancialTransaction', {
-        transaction_id: { 
-            type: DataTypes.INTEGER, 
-            autoIncrement: true, 
-            primaryKey: true 
-        },
-        txn_code: { 
-            type: DataTypes.STRING(50), 
-            allowNull: false, 
-            unique: true 
-            // KHÔNG dùng defaultValue ở DB layer để tránh lỗi trùng lặp Unique Constraint
-        },
-        type: { 
-            type: DataTypes.STRING(30), 
-            allowNull: false, 
-            defaultValue: TRANSACTION_TYPES.INCOME 
-        },
-        category: {
-            type: DataTypes.STRING(50),
-            allowNull: false,
-            defaultValue: TRANSACTION_CATEGORIES.TOPUP
-        },
-        amount: { 
-            type: DataTypes.DECIMAL(15, 2), 
-            allowNull: false, 
-            defaultValue: 0.00 
-        },
-        payment_method: { 
-            type: DataTypes.STRING(50), 
-            allowNull: false, 
-            defaultValue: PAYMENT_METHODS.CASH 
-        },
-        status: { 
-            type: DataTypes.STRING(30), 
-            allowNull: false, 
-            defaultValue: TRANSACTION_STATUS.SUCCESS 
-        },
-        member_id: { 
-            type: DataTypes.INTEGER, 
-            allowNull: true 
-        },
-        order_id: { 
-            type: DataTypes.INTEGER, 
-            allowNull: true 
-        },
-        computer_name: { 
-            type: DataTypes.STRING(50), 
-            allowNull: true 
-        },
-        staff_name: { 
-            type: DataTypes.STRING(100), 
-            allowNull: true 
-        },
-        notes: { 
-            type: DataTypes.TEXT, 
-            allowNull: true 
-        },
-        created_at: { 
-            type: DataTypes.DATE, 
-            defaultValue: DataTypes.NOW 
-        }
-    }, { 
-        tableName: 'financial_transaction', 
-        timestamps: false 
-    });
+class FinancialTransaction extends Model {}
 
-    // Hook: Tự động sinh mã giao dịch duy nhất trước khi validate/lưu vào DB
-    FinancialTransaction.beforeValidate((transaction) => {
-        if (!transaction.txn_code) {
-            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-            const randomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-            transaction.txn_code = `TXN-${dateStr}-${randomCode}`;
-        }
-    });
+module.exports = (sequelize) => {
+  FinancialTransaction.init({
+    transaction_id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
+    type: { type: DataTypes.ENUM(...Object.values(TransactionType)), allowNull: false },
+    category: { type: DataTypes.ENUM(...Object.values(TransactionCategory)), allowNull: false },
+    amount: { type: DataTypes.DECIMAL(15, 2), allowNull: false },
+    description: { type: DataTypes.TEXT },
+    used_by: { type: DataTypes.INTEGER, allowNull: false },
+    processed_by: { type: DataTypes.INTEGER }
+  }, {
+    sequelize,
+    modelName: 'FinancialTransaction',
+    tableName: 'financial_transaction',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false
+  });
 
-    FinancialTransaction.associate = (models) => {
-        FinancialTransaction.belongsTo(models.Member, { foreignKey: 'member_id', as: 'memberInfo' });
-        FinancialTransaction.belongsTo(models.ServiceOrder, { foreignKey: 'order_id', as: 'serviceOrder' });
-    };
+  FinancialTransaction.associate = (models) => {
+    FinancialTransaction.belongsTo(models.Member, { foreignKey: 'used_by', as: 'memberInfo' });
+    FinancialTransaction.belongsTo(models.User, { foreignKey: 'processed_by', as: 'processedBy' });
+  };
 
-    return FinancialTransaction;
+  return FinancialTransaction;
 };
