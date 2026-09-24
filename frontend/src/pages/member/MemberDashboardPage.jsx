@@ -4,7 +4,7 @@ import Sidebar from '../../widgets/sidebar/Sidebar';
 import Footer from '../../widgets/footer/Footer';
 import ZoneSection from '../../widgets/station-grid/ZoneSection';
 import StationDrawer from '../../features/station-drawer/ui/StationDrawer';
-import { STATION_TYPES } from '../../shared/data/mockData';
+import { STATION_TYPES } from '../../shared/constants/stationConstants';
 import dashboardService from '../../shared/api/dashboard.service';
 import authService from '../../shared/api/auth.service';
 import { LogOut, User, Wallet, Award, Gamepad2 } from 'lucide-react';
