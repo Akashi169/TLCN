@@ -10,17 +10,17 @@ export default function MachineKpiCards({
   onSelectStatus
 }) {
   const {
-    totalMachines = 120,
-    onlineCount = 28,
-    onlinePercent = '23.3%',
-    inUseCount = 76,
-    inUsePercent = '63.3%',
-    reservedCount = 6,
-    reservedPercent = '5.0%',
-    maintenanceCount = 5,
-    maintenancePercent = '4.2%',
-    offlineCount = 5,
-    offlinePercent = '4.2%'
+    totalMachines = 0,
+    onlineCount = 0,
+    onlinePercent = '0.0%',
+    inUseCount = 0,
+    inUsePercent = '0.0%',
+    reservedCount = 0,
+    reservedPercent = '0.0%',
+    maintenanceCount = 0,
+    maintenancePercent = '0.0%',
+    offlineCount = 0,
+    offlinePercent = '0.0%'
   } = metrics;
 
   const cards = [
@@ -29,7 +29,7 @@ export default function MachineKpiCards({
       title: 'Online',
       count: onlineCount,
       percent: onlinePercent,
-      sub: 'Sẵn sàng đón khách tức thì',
+      sub: 'Sẵn sàng đón khách',
       bgColor: 'bg-[#f0fdf4]',
       titleColor: 'text-[#15803d]',
       percentBg: 'bg-[#dcfce7]',
@@ -44,7 +44,7 @@ export default function MachineKpiCards({
       title: 'Đang Sử Dụng',
       count: inUseCount,
       percent: inUsePercent,
-      sub: 'Phiên Local & Cloud active',
+      sub: 'Phiên chơi đang hoạt động',
       bgColor: 'bg-[#f0f9ff]',
       titleColor: 'text-[#0369a1]',
       percentBg: 'bg-[#e0f2fe]',
@@ -55,10 +55,10 @@ export default function MachineKpiCards({
     },
     {
       id: 'reserved',
-      title: 'Đặt Trước',
-      count: String(reservedCount).padStart(2, '0'),
+      title: 'Đặt Trước / Khóa',
+      count: reservedCount,
       percent: reservedPercent,
-      sub: 'Khách đặt lịch qua App',
+      sub: 'Trạm bị khóa hoặc tạm dừng',
       bgColor: 'bg-[#faf5ff]',
       titleColor: 'text-[#7e22ce]',
       percentBg: 'bg-[#f3e8ff]',
@@ -70,9 +70,9 @@ export default function MachineKpiCards({
     {
       id: 'maintenance',
       title: 'Bảo Trì',
-      count: String(maintenanceCount).padStart(2, '0'),
+      count: maintenanceCount,
       percent: maintenancePercent,
-      sub: 'Lỗi switch LAN & GPU test',
+      sub: 'Đang kiểm tra thiết bị',
       bgColor: 'bg-[#fff1f2]',
       titleColor: 'text-[#be123c]',
       percentBg: 'bg-[#ffe4e6]',
@@ -84,9 +84,9 @@ export default function MachineKpiCards({
     {
       id: 'offline',
       title: 'Offline',
-      count: String(offlineCount).padStart(2, '0'),
+      count: offlineCount,
       percent: offlinePercent,
-      sub: 'Ngắt điện / Tắt nguồn trạm',
+      sub: 'Tắt nguồn trạm máy',
       bgColor: 'bg-[#f8fafc]',
       titleColor: 'text-[#475569]',
       percentBg: 'bg-[#e2e8f0]',

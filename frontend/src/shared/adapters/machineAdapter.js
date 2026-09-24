@@ -15,17 +15,17 @@ const ZONE_ICON_MAP = Object.freeze({
 
 // Computer Status Mapping Dictionary (aligned 100% with backend ComputerStatus enum)
 const STATUS_CONFIG_MAP = Object.freeze({
-  ONLINE: { status: 'online', statusLabel: 'Online (Sẵn sàng)', cleanStatus: 'Sẵn sàng nạp khách' },
-  IN_USE: { status: 'in-use', statusLabel: 'Đang sử dụng', cleanStatus: 'Khách đang hoạt động' },
-  MAINTENANCE: { status: 'maintenance', statusLabel: 'Bảo trì', cleanStatus: 'Đang kiểm tra phần cứng' },
-  OFFLINE: { status: 'offline', statusLabel: 'Offline', cleanStatus: 'Tắt nguồn' },
-  LOCKED: { status: 'locked', statusLabel: 'Tạm khóa', cleanStatus: 'Trạm bị khóa' },
-  PAUSE: { status: 'locked', statusLabel: 'Tạm dừng', cleanStatus: 'Phiên bị tạm dừng' },
-  REMOTE: { status: 'remote', statusLabel: 'Cloud Remote', cleanStatus: 'Trạm kết nối từ xa' }
+  ONLINE: { status: 'ONLINE', statusLabel: 'Online (Sẵn sàng)', cleanStatus: 'Sẵn sàng nạp khách' },
+  IN_USE: { status: 'IN_USE', statusLabel: 'Đang sử dụng', cleanStatus: 'Khách đang hoạt động' },
+  MAINTENANCE: { status: 'MAINTENANCE', statusLabel: 'Bảo trì', cleanStatus: 'Đang kiểm tra phần cứng' },
+  OFFLINE: { status: 'OFFLINE', statusLabel: 'Offline', cleanStatus: 'Tắt nguồn' },
+  LOCKED: { status: 'LOCKED', statusLabel: 'Tạm khóa', cleanStatus: 'Trạm bị khóa' },
+  PAUSE: { status: 'LOCKED', statusLabel: 'Tạm dừng', cleanStatus: 'Phiên bị tạm dừng' },
+  REMOTE: { status: 'REMOTE', statusLabel: 'Cloud Remote', cleanStatus: 'Trạm kết nối từ xa' }
 });
 
 const DEFAULT_STATUS_CONFIG = Object.freeze({
-  status: 'offline',
+  status: 'OFFLINE',
   statusLabel: 'Offline',
   cleanStatus: 'Tắt nguồn'
 });
@@ -62,16 +62,21 @@ export function mapComputerToMachineDTO(c) {
   else if (c.status === 'OFFLINE') type = 'off';
   else if (c.status === 'LOCKED') type = 'locked';
 
+  const pricePerHour = Number(c.ComputerZone?.PricingPlan?.price_per_hour || c.price_per_hour || (zoneId === 2 ? 15000 : zoneId === 3 ? 10000 : zoneId === 4 ? 20000 : zoneId === 5 ? 25000 : 12000));
+
   return {
     id: c.computer_name || c.id || `PC-${c.computer_id}`,
     computer_id: c.computer_id,
     numericId: String(c.computer_id || 1).padStart(2, '0'),
     ip: c.ip_address || `192.168.1.${100 + (c.computer_id || 1)}`,
+    mac_address: c.mac_address || 'F4:D4:88:5A:00:00',
     port: `Port #${c.computer_id || 1}`,
     zoneId: `zone-${zoneId}`,
     zoneName,
     zoneIcon,
     specDescription: zoneDesc,
+    price_per_hour: pricePerHour,
+    is_remote_enabled: Boolean(c.is_remote_enabled),
     cpu: c.is_remote_enabled ? 'Cloud vGPU Core' : 'Intel Core High Performance',
     gpu: c.is_remote_enabled ? 'RTX 4090 Cloud vGPU' : 'NVIDIA GeForce RTX',
     ram: '32GB DDR5',

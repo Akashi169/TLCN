@@ -19,6 +19,19 @@ class ComputerController {
     }
   }
 
+  async getZones(req, res, next) {
+    try {
+      const zones = await computerService.getAllZones();
+      return res.json({
+        status: 'success',
+        data: zones,
+        message: 'Lấy danh sách phân khu máy trạm thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async changeStatus(req, res, next) {
     try {
       const { id } = req.params;

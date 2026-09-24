@@ -64,11 +64,21 @@ class ComputerService {
    */
   async createComputer(computerData) {
     try {
-      const { computer_name, zone_id, status, ip_address, is_remote_enabled } = computerData;
+      const { computer_name, zone_id, status, ip_address, mac_address, is_remote_enabled } = computerData;
+
+      // Auto-compute next ID for dynamic LAN IP & MAC allocation if omitted
+      const maxCompId = (await db.Computer.max('computer_id')) || 0;
+      const nextId = maxCompId + 1;
+      const hexId = (nextId * 3).toString(16).padStart(2, '0').toUpperCase();
+
+      const autoIp = ip_address && ip_address.trim() ? ip_address.trim() : `192.168.1.${100 + nextId}`;
+      const autoMac = mac_address && mac_address.trim() ? mac_address.trim() : `F4:D4:88:5A:${String(nextId).padStart(2, '0')}:${hexId}`;
+
       const newComputer = await db.Computer.create({
-        computer_name,
-        ip_address: ip_address || null,
-        zone_id: zone_id || 1,
+        computer_name: computer_name || `PC-${String(nextId).padStart(3, '0')}`,
+        ip_address: autoIp,
+        mac_address: autoMac,
+        zone_id: Number(zone_id) || 1,
         status: status || ComputerStatus.OFFLINE,
         is_remote_enabled: is_remote_enabled || false
       });
@@ -94,6 +104,7 @@ class ComputerService {
       if (updateData.zone_id) computer.zone_id = updateData.zone_id;
       if (updateData.computer_name) computer.computer_name = updateData.computer_name;
       if (updateData.ip_address !== undefined) computer.ip_address = updateData.ip_address;
+      if (updateData.mac_address !== undefined) computer.mac_address = updateData.mac_address;
       if (updateData.is_remote_enabled !== undefined) computer.is_remote_enabled = updateData.is_remote_enabled;
 
       await computer.save();
