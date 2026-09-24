@@ -23,6 +23,22 @@ class MachineService {
   }
 
   /**
+   * Fetch all Computer Zones directly from CSDL MySQL (computer_zone table)
+   */
+  async getZones() {
+    try {
+      const response = await apiClient.get('/computers/zones');
+      const rawData = Array.isArray(response?.data)
+        ? response.data
+        : (Array.isArray(response?.data?.data) ? response.data.data : []);
+      return rawData;
+    } catch (error) {
+      console.warn('Lỗi khi lấy danh sách phân khu từ CSDL:', error.message);
+    }
+    return [];
+  }
+
+  /**
    * Remote control machine status (ONLINE, OFFLINE, LOCKED, MAINTENANCE)
    */
   async changeStatus(computerId, status, memberId = null, notes = null) {
@@ -69,7 +85,11 @@ class MachineService {
   async getMachines() {
     try {
       const response = await apiClient.get('/computers');
-      const rawData = response?.data?.data;
+      // Extract computers array from response.data (or response.data.data)
+      const rawData = Array.isArray(response?.data)
+        ? response.data
+        : (Array.isArray(response?.data?.data) ? response.data.data : []);
+
       if (Array.isArray(rawData) && rawData.length > 0) {
         return rawData.map(mapComputerToMachineDTO);
       }
@@ -77,6 +97,39 @@ class MachineService {
       console.warn('Lỗi khi lấy danh sách trạm máy từ CSDL:', error.message);
     }
     return [];
+  }
+
+  /**
+   * Create a new computer station in CSDL
+   */
+  async createMachine(computerData) {
+    const rawZoneId = computerData.zoneId || computerData.zone_id || '1';
+    const zoneId = Number(String(rawZoneId).replace('zone-', '')) || 1;
+
+    const response = await apiClient.post('/computers', {
+      computer_name: computerData.name || computerData.computer_name,
+      ip_address: computerData.ip || computerData.ip_address,
+      zone_id: zoneId,
+      status: computerData.status || 'OFFLINE',
+      is_remote_enabled: Boolean(computerData.is_remote_enabled || zoneId === 5)
+    });
+    return response.data;
+  }
+
+  /**
+   * Update computer properties in CSDL
+   */
+  async updateMachine(computerId, updateData) {
+    const response = await apiClient.put(`/computers/${computerId}`, updateData);
+    return response.data;
+  }
+
+  /**
+   * Delete computer station from CSDL
+   */
+  async deleteMachine(computerId) {
+    const response = await apiClient.delete(`/computers/${computerId}`);
+    return response.data;
   }
 }
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const computerController = require('../controllers/computerController');
 
 router.get('/grid', computerController.getRoomLayoutGrid);
+router.get('/zones', computerController.getZones);
 router.get('/bootrom-logs', computerController.getBootromLogs);
 router.post('/wake-on-lan', computerController.wakeOnLan);
 router.patch('/:id/status', computerController.changeStatus);

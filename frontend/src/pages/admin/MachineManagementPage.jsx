@@ -9,16 +9,30 @@ import MachineBulkActionBar from '../../features/machines/ui/MachineBulkActionBa
 import MachineTable from '../../features/machines/ui/MachineTable';
 import MachinePagination from '../../features/machines/ui/MachinePagination';
 import CreateMachineModal from '../../features/machines/ui/CreateMachineModal';
+import EditMachineModal from '../../features/machines/ui/EditMachineModal';
+import { ComputerStatus } from '../../shared/constants/stationConstants';
 
 // Station Card Grid View
 import StationCard from '../../entities/station/ui/StationCard';
 
+// Single Source of Truth for Status Grouping (DRY Resolver)
+const getStatusGroup = (status) => {
+  const s = String(status || '').toUpperCase();
+  if (s === ComputerStatus.ONLINE) return ComputerStatus.ONLINE;
+  if (s === ComputerStatus.IN_USE || s === ComputerStatus.REMOTE) return ComputerStatus.IN_USE;
+  if (s === ComputerStatus.LOCKED || s === ComputerStatus.PAUSE) return ComputerStatus.LOCKED;
+  if (s === ComputerStatus.MAINTENANCE) return ComputerStatus.MAINTENANCE;
+  return ComputerStatus.OFFLINE;
+};
+
 /**
  * MachineManagementPage (Quản lý Danh Sách Máy Trạm - Fleet Management)
- * Built with FSD Architecture, Clean Code & DRY Principles
+ * Built with FSD Architecture, Clean Code, SOLID & DRY Principles.
+ * Persists 100% of Fleet CRUD operations to MySQL CSDL.
  */
 export default function MachineManagementPage({ user, onLogout }) {
   const [machines, setMachines] = useState([]);
+  const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [zoneFilter, setZoneFilter] = useState('all');
@@ -27,69 +41,117 @@ export default function MachineManagementPage({ user, onLogout }) {
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
   const [selectedIds, setSelectedIds] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMachine, setEditingMachine] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Helper with safe try/catch/finally to re-fetch live machine fleet list & zones from MySQL CSDL
+  const refreshMachineList = async () => {
+    setLoading(true);
+    try {
+      const [machinesData, zonesData] = await Promise.all([
+        machineService.getMachines(),
+        machineService.getZones()
+      ]);
+      if (Array.isArray(machinesData)) {
+        setMachines(machinesData);
+      }
+      if (Array.isArray(zonesData)) {
+        setZones(zonesData);
+      }
+    } catch (error) {
+      console.error('Lỗi khi nạp lại danh sách máy trạm:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Compute unique GPU hardware list dynamically from CSDL machines
+  const hardwareList = useMemo(() => {
+    const gpuMap = new Map();
+    machines.forEach((m) => {
+      if (m.gpu) {
+        const val = m.gpu.toLowerCase().replace(/\s+/g, '-');
+        if (!gpuMap.has(val)) {
+          gpuMap.set(val, m.gpu);
+        }
+      }
+    });
+    return Array.from(gpuMap.entries()).map(([val, label]) => ({
+      value: val,
+      label
+    }));
+  }, [machines]);
+
   // Auto-fetch machines from Backend API CSDL on mount
   useEffect(() => {
-    const fetchMachineData = async () => {
-      setLoading(true);
-      const data = await machineService.getMachines();
-      if (Array.isArray(data)) {
-        setMachines(data);
-      }
-      setLoading(false);
-    };
-    fetchMachineData();
+    refreshMachineList();
   }, []);
 
-  // Compute live KPI metrics dynamically from CSDL machines (useMemo prevents crash & unnecessary re-renders)
+  // Compute live KPI metrics dynamically in a single clean pass using getStatusGroup helper
   const metrics = useMemo(() => {
     const totalMachines = machines.length;
-    const onlineCount = machines.filter(
-      (m) => m.status === 'online' || m.status === 'ONLINE'
-    ).length;
-    const inUseCount = machines.filter(
-      (m) => m.status === 'in-use' || m.status === 'IN_USE'
-    ).length;
-    const maintenanceCount = machines.filter(
-      (m) => m.status === 'maintenance' || m.status === 'MAINTENANCE'
-    ).length;
-    const cloudCount = machines.filter(
-      (m) => m.status === 'remote' || m.status === 'REMOTE'
-    ).length;
-    const occupancyRate =
-      totalMachines > 0 ? ((inUseCount / totalMachines) * 100).toFixed(1) : '0.0';
+
+    let onlineCount = 0;
+    let inUseCount = 0;
+    let reservedCount = 0;
+    let maintenanceCount = 0;
+    let offlineCount = 0;
+
+    for (const m of machines) {
+      const group = getStatusGroup(m.status);
+      if (group === ComputerStatus.ONLINE) onlineCount++;
+      else if (group === ComputerStatus.IN_USE) inUseCount++;
+      else if (group === ComputerStatus.LOCKED) reservedCount++;
+      else if (group === ComputerStatus.MAINTENANCE) maintenanceCount++;
+      else offlineCount++;
+    }
+
+    const calcPercent = (count) =>
+      totalMachines > 0 ? `${((count / totalMachines) * 100).toFixed(1)}%` : '0.0%';
 
     return {
       totalMachines,
       onlineCount,
+      onlinePercent: calcPercent(onlineCount),
       inUseCount,
+      inUsePercent: calcPercent(inUseCount),
+      reservedCount,
+      reservedPercent: calcPercent(reservedCount),
       maintenanceCount,
-      cloudCount,
-      occupancyRate
+      maintenancePercent: calcPercent(maintenanceCount),
+      offlineCount,
+      offlinePercent: calcPercent(offlineCount),
+      occupancyRate: totalMachines > 0 ? ((inUseCount / totalMachines) * 100).toFixed(1) : '0.0'
     };
   }, [machines]);
 
-  // Filtered Machines Calculation
+  // Filtered Machines Calculation using single getStatusGroup helper
   const filteredMachines = useMemo(() => {
     return machines.filter((m) => {
-      // Search
+      // Search across Code, IP, MAC, User, Game, Hardware, Zone Name
       const query = searchQuery.toLowerCase().trim();
       const matchSearch =
         !query ||
-        m.id.toLowerCase().includes(query) ||
-        m.ip.includes(query) ||
+        (m.id && m.id.toLowerCase().includes(query)) ||
+        (m.ip && m.ip.toLowerCase().includes(query)) ||
+        (m.mac_address && m.mac_address.toLowerCase().includes(query)) ||
         (m.userName && m.userName.toLowerCase().includes(query)) ||
         (m.currentGame && m.currentGame.toLowerCase().includes(query)) ||
         (m.cpu && m.cpu.toLowerCase().includes(query)) ||
-        (m.gpu && m.gpu.toLowerCase().includes(query));
+        (m.gpu && m.gpu.toLowerCase().includes(query)) ||
+        (m.zoneName && m.zoneName.toLowerCase().includes(query));
 
       // Zone filter
       const matchZone = zoneFilter === 'all' || m.zoneId === zoneFilter;
 
-      // Status filter
-      const matchStatus = statusFilter === 'all' || m.status === statusFilter;
+      // Status filter matching via single helper call
+      let matchStatus = true;
+      if (statusFilter !== 'all') {
+        const machineGroup = getStatusGroup(m.status);
+        const filterGroup = getStatusGroup(statusFilter);
+        matchStatus = machineGroup === filterGroup;
+      }
 
       // Hardware GPU filter
       let matchHardware = true;
@@ -132,70 +194,133 @@ export default function MachineManagementPage({ user, onLogout }) {
     }
   };
 
-  // Actions
+  // Reusable Bulk Action Wrapper (DRY: handles selection check, Promise.all concurrency, refresh, and error handling)
+  const executeBulkAction = async (actionFn, errorMessage) => {
+    if (selectedIds.length === 0) return;
+    try {
+      await Promise.all(
+        selectedIds.map((id) => {
+          const comp = machines.find((m) => m.id === id);
+          const computerId = comp?.computer_id || id;
+          return actionFn(computerId);
+        })
+      );
+      setSelectedIds([]);
+      await refreshMachineList();
+    } catch (error) {
+      alert(error.message || errorMessage);
+    }
+  };
+
   const handleRebootSelected = () => {
     alert(`Đã gửi lệnh Reboot khởi động lại cho ${selectedIds.length} máy trạm!`);
     setSelectedIds([]);
   };
 
-  const handleMaintenanceSelected = () => {
-    setMachines((prev) =>
-      prev.map((m) =>
-        selectedIds.includes(m.id)
-          ? {
-              ...m,
-              status: 'maintenance',
-              statusLabel: 'Bảo trì',
-              cleanStatus: 'Đang kiểm tra bảo trì thủ công'
-            }
-          : m
-      )
+  const handleMaintenanceSelected = () =>
+    executeBulkAction(
+      (computerId) => machineService.changeStatus(computerId, ComputerStatus.MAINTENANCE),
+      'Lỗi khi chuyển trạng thái bảo trì trạm máy'
     );
-    setSelectedIds([]);
-  };
 
-  const handleAssignZoneSelected = () => {
-    const newZone = window.prompt('Nhập mã Phân khu mới (VD: zone-1, zone-2, zone-3):', 'zone-2');
-    if (newZone) {
-      setMachines((prev) =>
-        prev.map((m) =>
-          selectedIds.includes(m.id)
-            ? { ...m, zoneId: newZone, zoneName: `Zone ${newZone.replace('zone-', '')}` }
-            : m
-        )
+  const handleAssignZoneSelected = async () => {
+    if (selectedIds.length === 0) return;
+    const newZoneInput = window.prompt('Nhập mã ID Phân khu mới (1: Esports, 2: VIP, 3: Tiêu chuẩn, 4: Studio, 5: Cloud):', '2');
+    if (newZoneInput) {
+      const zoneId = Number(newZoneInput.replace('zone-', '')) || 1;
+      await executeBulkAction(
+        (computerId) => machineService.updateMachine(computerId, { zone_id: zoneId }),
+        'Lỗi khi chuyển phân khu máy'
       );
-      setSelectedIds([]);
     }
   };
 
-  const handleDeleteSelected = () => {
-    if (window.confirm(`Xóa ${selectedIds.length} máy trạm khỏi danh sách quản lý?`)) {
-      setMachines((prev) => prev.filter((m) => !selectedIds.includes(m.id)));
-      setSelectedIds([]);
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Xóa ${selectedIds.length} máy trạm đã chọn?`)) {
+      await executeBulkAction(
+        (computerId) => machineService.deleteMachine(computerId),
+        'Lỗi khi xóa máy trạm'
+      );
     }
   };
 
-  // Fix App Crash: Only update machines state. metrics updates automatically via useMemo([machines])
-  const handleCreateMachine = (newMachineData) => {
-    const newMachine = {
-      id: newMachineData.name || `PC-${Math.floor(10 + Math.random() * 90)}`,
-      numericId: String(Math.floor(10 + Math.random() * 90)),
-      ip: newMachineData.ip || '192.168.1.150',
-      port: 'Port #15',
-      zoneId: newMachineData.zoneId || 'zone-1',
-      zoneName: `Zone ${newMachineData.zoneId?.replace('zone-', '') || '1'}`,
-      zoneIcon: 'grid_view',
-      cpu: newMachineData.cpu || 'i7-14700KF',
-      gpu: newMachineData.gpu || 'RTX 4070 Ti Super 16GB',
-      ram: '32GB DDR5',
-      bootImage: newMachineData.bootImage || 'Win11-Pro-Cyber-v25.02',
-      userName: null,
-      cleanStatus: 'Mới đăng ký thành công',
-      status: 'online',
-      statusLabel: 'Online (Sẵn sàng)'
-    };
+  const handleDeleteSingle = async (machineId) => {
+    const comp = machines.find((m) => m.id === machineId);
+    const computerId = comp?.computer_id || machineId;
+    if (window.confirm(`Xóa máy trạm ${machineId}?`)) {
+      try {
+        await machineService.deleteMachine(computerId);
+        setSelectedIds((prev) => prev.filter((id) => id !== machineId));
+        await refreshMachineList();
+      } catch (error) {
+        alert(error.message || 'Lỗi khi xóa máy trạm');
+      }
+    }
+  };
 
-    setMachines((prev) => [newMachine, ...prev]);
+  // CSDL Machine Creation Handler
+  const handleCreateMachine = async (newMachineData) => {
+    try {
+      await machineService.createMachine(newMachineData);
+      setIsModalOpen(false);
+      await refreshMachineList();
+    } catch (error) {
+      alert(error.message || 'Lỗi khi khai báo máy trạm mới');
+    }
+  };
+
+  // CSDL Machine Update Handler
+  const handleUpdateMachine = async (computerId, updateData) => {
+    try {
+      await machineService.updateMachine(computerId, updateData);
+      setEditingMachine(null);
+      await refreshMachineList();
+    } catch (error) {
+      alert(error.message || 'Lỗi khi cập nhật thông tin máy trạm');
+    }
+  };
+
+  // CSV Report Exporter with UTF-8 BOM
+  const handleExportReport = () => {
+    if (!filteredMachines || filteredMachines.length === 0) {
+      alert('Không có dữ liệu máy trạm để xuất báo cáo.');
+      return;
+    }
+
+    const headers = [
+      'Mã Máy',
+      'Tên Máy Trạm',
+      'Phân Khu',
+      'Địa Chỉ IP',
+      'Địa Chỉ MAC',
+      'Cấu Hình Phần Cứng',
+      'Giá Tiền (đ/h)',
+      'Người Dùng Hiện Tại',
+      'Trạng Thái'
+    ];
+
+    const rows = filteredMachines.map((m) => [
+      `"${m.id || ''}"`,
+      `"${m.computer_name || m.id || ''}"`,
+      `"${m.zoneName || ''}"`,
+      `"${m.ip || ''}"`,
+      `"${m.mac_address || ''}"`,
+      `"${(m.specDescription || `${m.cpu} | ${m.gpu} | ${m.ram}`).replace(/"/g, '""')}"`,
+      `"${m.price_per_hour || 0}"`,
+      `"${(m.userName || 'Chưa có').replace(/"/g, '""')}"`,
+      `"${m.statusLabel || m.cleanStatus || m.status || ''}"`
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Bao_Cao_Danh_Sach_May_Tram_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -230,12 +355,9 @@ export default function MachineManagementPage({ user, onLogout }) {
                 </div>
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 mt-1">
                   Quản Lý Danh Sách Máy Trạm
-                  <span className="bg-sky-100 text-sky-900 font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Fleet v4.6
-                  </span>
                 </h1>
                 <p className="text-xs text-slate-600 max-w-3xl font-medium">
-                  Hệ thống giám sát, phân bổ phân khu phần cứng và điều phối {metrics.totalMachines} trạm máy BootROM / Cloud vGPU theo thời gian thực.
+                  Hệ thống giám sát, phân bổ phân khu phần cứng và điều phối {metrics.totalMachines} trạm máy theo thời gian thực.
                 </p>
               </div>
             </div>
@@ -251,16 +373,19 @@ export default function MachineManagementPage({ user, onLogout }) {
             <MachineFilterBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              zones={zones}
               zoneFilter={zoneFilter}
               onZoneChange={setZoneFilter}
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}
+              hardwareList={hardwareList}
               hardwareFilter={hardwareFilter}
               onHardwareChange={setHardwareFilter}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               onOpenCreateModal={() => setIsModalOpen(true)}
-              onSyncBootrom={() => alert('Đã đồng bộ lại danh sách đĩa BootROM SAN!')}
+              onSyncBootrom={() => alert('Đã đồng bộ lại danh sách trạm máy!')}
+              onExportReport={handleExportReport}
             />
 
             {/* Bulk Action Bar */}
@@ -276,7 +401,7 @@ export default function MachineManagementPage({ user, onLogout }) {
             {/* Content: Table View or Grid View with Loading Skeleton */}
             {loading ? (
               <div className="p-12 text-center text-slate-500 font-mono text-xs bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center gap-2">
-                <span className="animate-spin text-slate-700">⏳</span> Đang tải dữ liệu máy trạm từ CSDL...
+                <span className="animate-spin text-slate-700">⏳</span> Đang tải danh sách máy trạm...
               </div>
             ) : viewMode === 'table' ? (
               <MachineTable
@@ -285,30 +410,40 @@ export default function MachineManagementPage({ user, onLogout }) {
                 onToggleSelect={handleToggleSelect}
                 onToggleSelectAll={handleToggleSelectAll}
                 onLiveMirror={(id) => alert(`Đang kết nối Live Mirror xem màn hình máy ${id}...`)}
-                onEdit={(id) => alert(`Chỉnh sửa cấu hình máy ${id}`)}
-                onDelete={(id) => {
-                  if (window.confirm(`Xóa máy ${id} khỏi danh sách?`)) {
-                    setMachines((prev) => prev.filter((m) => m.id !== id));
-                    setSelectedIds((prev) => prev.filter((item) => item !== id));
-                  }
-                }}
+                onEdit={(machineObj) => setEditingMachine(machineObj)}
+                onDelete={handleDeleteSingle}
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3.5 bg-white p-4 rounded-xl border border-slate-200">
-                {paginatedMachines.map((m) => (
-                  <StationCard
-                    key={m.id}
-                    station={{
-                      id: m.id,
-                      user: m.userName,
-                      game: m.currentGame || m.cleanStatus,
-                      type: m.status === 'online' ? 'ready' : m.status === 'maintenance' ? 'maint' : m.status === 'in-use' ? 'local' : 'ready',
-                      time: m.sessionTime ? m.sessionTime.split('/')[0].trim() : '00:00',
-                      latency: m.ip
-                    }}
-                    onClick={() => alert(`Chi tiết máy ${m.id}`)}
-                  />
-                ))}
+                {paginatedMachines.map((m) => {
+                  const statusGroup = getStatusGroup(m.status);
+                  const stationType = m.type || (
+                    statusGroup === ComputerStatus.ONLINE
+                      ? 'ready'
+                      : statusGroup === ComputerStatus.MAINTENANCE
+                      ? 'maint'
+                      : statusGroup === ComputerStatus.IN_USE
+                      ? (m.is_remote_enabled ? 'cloud' : 'local')
+                      : statusGroup === ComputerStatus.LOCKED
+                      ? 'locked'
+                      : 'off'
+                  );
+
+                  return (
+                    <StationCard
+                      key={m.id}
+                      station={{
+                        id: m.id,
+                        user: m.userName,
+                        game: m.currentGame || m.cleanStatus,
+                        type: stationType,
+                        time: m.sessionTime ? m.sessionTime.split('/')[0].trim() : '00:00',
+                        latency: m.ip
+                      }}
+                      onClick={() => alert(`Chi tiết máy ${m.id}`)}
+                    />
+                  );
+                })}
               </div>
             )}
 
@@ -335,6 +470,15 @@ export default function MachineManagementPage({ user, onLogout }) {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateMachine}
       />
+
+      {/* Edit Machine Modal */}
+      <EditMachineModal
+        isOpen={Boolean(editingMachine)}
+        machine={editingMachine}
+        onClose={() => setEditingMachine(null)}
+        onSubmit={handleUpdateMachine}
+      />
     </div>
   );
 }
+

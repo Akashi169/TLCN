@@ -10,3 +10,28 @@ export const STATION_TYPES = Object.freeze({
     off: { id: 'off', label: 'Tắt Nguồn', color: 'slate', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300' },
     locked: { id: 'locked', label: 'Tạm Khóa', color: 'amber', bg: 'bg-amber-100', text: 'text-amber-900', border: 'border-amber-300' }
 });
+
+/**
+ * Computer Status Centralized Enum (Aligned 100% with Backend ComputerStatus Enum)
+ */
+export const ComputerStatus = Object.freeze({
+    ONLINE: 'ONLINE',
+    IN_USE: 'IN_USE',
+    LOCKED: 'LOCKED',
+    MAINTENANCE: 'MAINTENANCE',
+    OFFLINE: 'OFFLINE',
+    REMOTE: 'REMOTE'
+});
+
+/**
+ * Computer Status Dropdown Selection Options
+ */
+export const COMPUTER_STATUS_OPTIONS = Object.freeze([
+    { value: ComputerStatus.ONLINE, label: '🟢 ONLINE (Sẵn sàng)' },
+    { value: ComputerStatus.IN_USE, label: '🔵 IN_USE (Đang sử dụng)' },
+    { value: ComputerStatus.LOCKED, label: '🟣 LOCKED (Tạm khóa)' },
+    { value: ComputerStatus.MAINTENANCE, label: '🔴 MAINTENANCE (Bảo trì)' },
+    { value: ComputerStatus.OFFLINE, label: '⚪ OFFLINE (Tắt nguồn)' },
+    { value: ComputerStatus.REMOTE, label: '☁️ REMOTE (Cloud Remote)' }
+]);
+
