@@ -57,90 +57,119 @@ const seedData = async (db) => {
       { zone_id: 5, zone_name: 'Zone 5: Cloud Remote Nodes', description: 'Cụm Cloud vGPU stream WebRTC 1.1ms AV1 Dual EPYC', tier_level: 4 }
     ]);
 
-    // Seed Zone Pricing Plan relationships safely
-    try {
-      const links = [
-        { zone_id: 1, pricing_plan_id: 2 },
-        { zone_id: 2, pricing_plan_id: 2 },
-        { zone_id: 3, pricing_plan_id: 1 },
-        { zone_id: 4, pricing_plan_id: 3 },
-        { zone_id: 5, pricing_plan_id: 4 }
-      ];
-      await db.ZonePricingPlan.bulkCreate(links, { ignoreDuplicates: true });
-    } catch (e) {
-      console.warn('[Seeder Warning] Skipping ZonePricingPlan seed:', e.message);
+    // 4.5. Seed Hardware Profiles into MySQL CSDL
+    if (db.HardwareProfile) {
+      await safeSeed(db.HardwareProfile, [
+        {
+          profile_id: 1,
+          profile_name: 'Dàn Thi Đấu Esports Pro',
+          description: 'Cấu hình cao cấp thi đấu giải FPS, màn 240Hz Fast-IPS, i9 + RTX 4080 Super',
+          cpu_model: 'Intel Core i9-14900K (24 Cores / 32 Threads @ 5.8GHz)',
+          gpu_model: 'RTX 4080 Super 16GB (ASUS ROG Strix OC)',
+          ram_capacity: '64GB DDR5 6000MHz CL30 (Kingston Beast)',
+          storage_type: 'SAN NVMe 10Gbps (iSCSI Boot + 2TB Writeback RAM)',
+          monitor: '25" Fast-IPS 240Hz (BenQ ZOWIE XL2546K)',
+          gear: 'Chuột Logitech G Pro X Superlight + Phím Cơ Custom + Tai Cloud II',
+          zone_id: 1
+        },
+        {
+          profile_id: 2,
+          profile_name: 'Dàn VIP Gaming Pro',
+          description: 'Cấu hình VIP Pro phòng riêng biệt, i7 + RTX 4070 Ti Super',
+          cpu_model: 'Intel Core i7-14700K (20 Cores / 28 Threads @ 5.6GHz)',
+          gpu_model: 'RTX 4070 Ti Super 16GB (MSI Gaming X Slim)',
+          ram_capacity: '32GB DDR5 6000MHz CL30 (Kingston Beast)',
+          storage_type: 'High Throughput Cache 1TB SAN Boot',
+          monitor: '27" 2K OLED 240Hz (ASUS ROG Swift PG27AQDM)',
+          gear: 'Chuột Razer DeathAdder V3 + Phím Huntsman + Tai Kraken',
+          zone_id: 2
+        },
+        {
+          profile_id: 3,
+          profile_name: 'Dàn Phổ Thông Standard',
+          description: 'Cấu hình tiêu chuẩn phổ thông combat game online i5 + RTX 4060',
+          cpu_model: 'Intel Core i5-13400F (10 Cores / 16 Threads @ 4.6GHz)',
+          gpu_model: 'RTX 4060 8GB (Zotac Gaming Twin Edge)',
+          ram_capacity: '32GB DDR4 3200MHz Dual Channel TeamGroup',
+          storage_type: 'SAN NVMe 10Gbps (iSCSI Boot + 2TB Writeback RAM)',
+          monitor: '24" Full HD 180Hz (ViewSonic Gaming)',
+          gear: 'Bộ Peripherals Standard Cyber Gaming',
+          zone_id: 3
+        },
+        {
+          profile_id: 4,
+          profile_name: 'Dàn Stream Studio Pro',
+          description: 'Cụm máy Studio Livestream 4K, Ryzen 9 + RTX 4090 24GB',
+          cpu_model: 'AMD Ryzen 9 7950X (16 Cores / 32 Threads @ 5.7GHz)',
+          gpu_model: 'RTX 4090 24GB (Gigabyte AORUS Master)',
+          ram_capacity: '64GB DDR5 6000MHz (G.Skill Trident Z5 Neo)',
+          storage_type: 'Dual NVMe 2TB PCIe 4.0 Direct Capture',
+          monitor: '25" 360Hz BenQ ZOWIE XL2566K',
+          gear: 'Chuột Logitech G Pro X Superlight + Phím Cơ Custom + Tai Cloud II',
+          zone_id: 4
+        },
+        {
+          profile_id: 5,
+          profile_name: 'Dàn Cloud Remote Nodes',
+          description: 'Cụm máy Cloud vGPU WebRTC Hypervisor',
+          cpu_model: 'AMD EPYC 7763 (64 Cores / 128 Threads Hypervisor)',
+          gpu_model: 'RTX 4090 24GB (Gigabyte AORUS Master)',
+          ram_capacity: '128GB ECC Reg Quad-Channel',
+          storage_type: '40Gbps Fiber SAN (Direct RDMA Ultra-low Latency)',
+          monitor: '25" Fast-IPS 240Hz (BenQ ZOWIE XL2546K)',
+          gear: 'Bộ Peripherals Standard Cyber Gaming',
+          zone_id: 5
+        }
+      ]);
     }
 
-    // 5. Seed Users & Members
-    try {
-      await safeSeed(db.User, [
-        { user_id: 1, username: 'admin', password_hash: hashedPassword, full_name: 'Quản Trị Viên Hệ Thống', role: UserRole.ADMIN, status: UserStatus.ACTIVE },
-        { user_id: 2, username: 'staff1', password_hash: hashedPassword, full_name: 'Nguyễn Văn Thu Ngân', role: UserRole.EMPLOYEE, status: UserStatus.ACTIVE },
-        { user_id: 3, username: 'customer1', password_hash: hashedPassword, full_name: 'Trần Văn ProGamer', role: UserRole.MEMBER, status: UserStatus.ACTIVE },
-        { user_id: 4, username: 'customer2', password_hash: hashedPassword, full_name: 'Lê Thị VIP', role: UserRole.MEMBER, status: UserStatus.ACTIVE },
-        { user_id: 5, username: 'customer3', password_hash: hashedPassword, full_name: 'Hoàng Lâm Streamer', role: UserRole.MEMBER, status: UserStatus.ACTIVE },
-        { user_id: 6, username: 'customer4', password_hash: hashedPassword, full_name: 'Phạm Minh Tuấn', role: UserRole.MEMBER, status: UserStatus.ACTIVE },
-        { user_id: 7, username: 'customer5', password_hash: hashedPassword, full_name: 'Đặng Bảo Nam', role: UserRole.MEMBER, status: UserStatus.ACTIVE }
-      ]);
-
-      await safeSeed(db.Member, [
-        { member_id: 3, id_number: '079200012345', phone: '0901234567', real_balance: 150000.00, bonus_balance: 50000.00, point: 1200, rank_id: 2 },
-        { member_id: 4, id_number: '079200054321', phone: '0987654321', real_balance: 500000.00, bonus_balance: 100000.00, point: 3500, rank_id: 4 },
-        { member_id: 5, id_number: '079200088888', phone: '0912345678', real_balance: 300000.00, bonus_balance: 20000.00, point: 2100, rank_id: 3 },
-        { member_id: 6, id_number: '079200099999', phone: '0933445566', real_balance: 80000.00, bonus_balance: 10000.00, point: 450, rank_id: 1 },
-        { member_id: 7, id_number: '079200077777', phone: '0977889900', real_balance: 220000.00, bonus_balance: 30000.00, point: 1800, rank_id: 3 }
-      ]);
-    } catch (e) {
-      console.warn('[Seeder Warning] Skipping User/Member seed:', e.message);
-    }
-
-    // 6. Seed Computers (Rich set of 36 computers with MAC addresses)
+    // 6. Seed Computers (Rich set of 36 computers with MAC addresses & Hardware Profile mapping)
     await safeSeed(db.Computer, [
       // Zone 1: Esports Pro Arena (8 trạm)
-      { computer_id: 1, computer_name: 'ESP-01', ip_address: '192.168.1.101', mac_address: 'F4:D4:88:5A:01:01', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 2, computer_name: 'ESP-02', ip_address: '192.168.1.102', mac_address: 'F4:D4:88:5A:01:02', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 3, computer_name: 'ESP-03', ip_address: '192.168.1.103', mac_address: 'F4:D4:88:5A:01:03', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 4, computer_name: 'ESP-04', ip_address: '192.168.1.104', mac_address: 'F4:D4:88:5A:01:04', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 5, computer_name: 'ESP-05', ip_address: '192.168.1.105', mac_address: 'F4:D4:88:5A:01:05', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 6, computer_name: 'ESP-06', ip_address: '192.168.1.106', mac_address: 'F4:D4:88:5A:01:06', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 7, computer_name: 'ESP-07', ip_address: '192.168.1.107', mac_address: 'F4:D4:88:5A:01:07', status: ComputerStatus.MAINTENANCE, is_remote_enabled: true, zone_id: 1 },
-      { computer_id: 8, computer_name: 'ESP-08', ip_address: '192.168.1.108', mac_address: 'F4:D4:88:5A:01:08', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1 },
+      { computer_id: 1, computer_name: 'ESP-01', ip_address: '192.168.1.101', mac_address: 'F4:D4:88:5A:01:01', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 2, computer_name: 'ESP-02', ip_address: '192.168.1.102', mac_address: 'F4:D4:88:5A:01:02', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 3, computer_name: 'ESP-03', ip_address: '192.168.1.103', mac_address: 'F4:D4:88:5A:01:03', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 4, computer_name: 'ESP-04', ip_address: '192.168.1.104', mac_address: 'F4:D4:88:5A:01:04', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 5, computer_name: 'ESP-05', ip_address: '192.168.1.105', mac_address: 'F4:D4:88:5A:01:05', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 6, computer_name: 'ESP-06', ip_address: '192.168.1.106', mac_address: 'F4:D4:88:5A:01:06', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 7, computer_name: 'ESP-07', ip_address: '192.168.1.107', mac_address: 'F4:D4:88:5A:01:07', status: ComputerStatus.MAINTENANCE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
+      { computer_id: 8, computer_name: 'ESP-08', ip_address: '192.168.1.108', mac_address: 'F4:D4:88:5A:01:08', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 1, hardware_profile_id: 1 },
 
       // Zone 2: VIP Gaming Suite (8 trạm)
-      { computer_id: 9, computer_name: 'VIP-01', ip_address: '192.168.1.201', mac_address: 'F4:D4:88:5A:02:01', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 10, computer_name: 'VIP-02', ip_address: '192.168.1.202', mac_address: 'F4:D4:88:5A:02:02', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 11, computer_name: 'VIP-03', ip_address: '192.168.1.203', mac_address: 'F4:D4:88:5A:02:03', status: ComputerStatus.LOCKED, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 12, computer_name: 'VIP-04', ip_address: '192.168.1.204', mac_address: 'F4:D4:88:5A:02:04', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 13, computer_name: 'VIP-05', ip_address: '192.168.1.205', mac_address: 'F4:D4:88:5A:02:05', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 14, computer_name: 'VIP-06', ip_address: '192.168.1.206', mac_address: 'F4:D4:88:5A:02:06', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 15, computer_name: 'VIP-07', ip_address: '192.168.1.207', mac_address: 'F4:D4:88:5A:02:07', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2 },
-      { computer_id: 16, computer_name: 'VIP-08', ip_address: '192.168.1.208', mac_address: 'F4:D4:88:5A:02:08', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 2 },
+      { computer_id: 9, computer_name: 'VIP-01', ip_address: '192.168.1.201', mac_address: 'F4:D4:88:5A:02:01', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 10, computer_name: 'VIP-02', ip_address: '192.168.1.202', mac_address: 'F4:D4:88:5A:02:02', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 11, computer_name: 'VIP-03', ip_address: '192.168.1.203', mac_address: 'F4:D4:88:5A:02:03', status: ComputerStatus.LOCKED, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 12, computer_name: 'VIP-04', ip_address: '192.168.1.204', mac_address: 'F4:D4:88:5A:02:04', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 13, computer_name: 'VIP-05', ip_address: '192.168.1.205', mac_address: 'F4:D4:88:5A:02:05', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 14, computer_name: 'VIP-06', ip_address: '192.168.1.206', mac_address: 'F4:D4:88:5A:02:06', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 15, computer_name: 'VIP-07', ip_address: '192.168.1.207', mac_address: 'F4:D4:88:5A:02:07', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
+      { computer_id: 16, computer_name: 'VIP-08', ip_address: '192.168.1.208', mac_address: 'F4:D4:88:5A:02:08', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 2, hardware_profile_id: 2 },
 
       // Zone 3: Tiêu Chuẩn Combat (10 trạm)
-      { computer_id: 17, computer_name: 'STD-01', ip_address: '192.168.1.301', mac_address: 'F4:D4:88:5A:03:01', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 18, computer_name: 'STD-02', ip_address: '192.168.1.302', mac_address: 'F4:D4:88:5A:03:02', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 19, computer_name: 'STD-03', ip_address: '192.168.1.303', mac_address: 'F4:D4:88:5A:03:03', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 20, computer_name: 'STD-04', ip_address: '192.168.1.304', mac_address: 'F4:D4:88:5A:03:04', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 21, computer_name: 'STD-05', ip_address: '192.168.1.305', mac_address: 'F4:D4:88:5A:03:05', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 22, computer_name: 'STD-06', ip_address: '192.168.1.306', mac_address: 'F4:D4:88:5A:03:06', status: ComputerStatus.MAINTENANCE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 23, computer_name: 'STD-07', ip_address: '192.168.1.307', mac_address: 'F4:D4:88:5A:03:07', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 24, computer_name: 'STD-08', ip_address: '192.168.1.308', mac_address: 'F4:D4:88:5A:03:08', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 25, computer_name: 'STD-09', ip_address: '192.168.1.309', mac_address: 'F4:D4:88:5A:03:09', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3 },
-      { computer_id: 26, computer_name: 'STD-10', ip_address: '192.168.1.310', mac_address: 'F4:D4:88:5A:03:10', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3 },
+      { computer_id: 17, computer_name: 'STD-01', ip_address: '192.168.1.301', mac_address: 'F4:D4:88:5A:03:01', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 18, computer_name: 'STD-02', ip_address: '192.168.1.302', mac_address: 'F4:D4:88:5A:03:02', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 19, computer_name: 'STD-03', ip_address: '192.168.1.303', mac_address: 'F4:D4:88:5A:03:03', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 20, computer_name: 'STD-04', ip_address: '192.168.1.304', mac_address: 'F4:D4:88:5A:03:04', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 21, computer_name: 'STD-05', ip_address: '192.168.1.305', mac_address: 'F4:D4:88:5A:03:05', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 22, computer_name: 'STD-06', ip_address: '192.168.1.306', mac_address: 'F4:D4:88:5A:03:06', status: ComputerStatus.MAINTENANCE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 23, computer_name: 'STD-07', ip_address: '192.168.1.307', mac_address: 'F4:D4:88:5A:03:07', status: ComputerStatus.OFFLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 24, computer_name: 'STD-08', ip_address: '192.168.1.308', mac_address: 'F4:D4:88:5A:03:08', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 25, computer_name: 'STD-09', ip_address: '192.168.1.309', mac_address: 'F4:D4:88:5A:03:09', status: ComputerStatus.IN_USE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
+      { computer_id: 26, computer_name: 'STD-10', ip_address: '192.168.1.310', mac_address: 'F4:D4:88:5A:03:10', status: ComputerStatus.ONLINE, is_remote_enabled: false, zone_id: 3, hardware_profile_id: 3 },
 
       // Zone 4: Stream Studio (4 trạm)
-      { computer_id: 27, computer_name: 'STR-01', ip_address: '192.168.1.401', mac_address: 'F4:D4:88:5A:04:01', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 4 },
-      { computer_id: 28, computer_name: 'STR-02', ip_address: '192.168.1.402', mac_address: 'F4:D4:88:5A:04:02', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 4 },
-      { computer_id: 29, computer_name: 'STR-03', ip_address: '192.168.1.403', mac_address: 'F4:D4:88:5A:04:03', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 4 },
-      { computer_id: 30, computer_name: 'STR-04', ip_address: '192.168.1.404', mac_address: 'F4:D4:88:5A:04:04', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 4 },
+      { computer_id: 27, computer_name: 'STR-01', ip_address: '192.168.1.401', mac_address: 'F4:D4:88:5A:04:01', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 4, hardware_profile_id: 4 },
+      { computer_id: 28, computer_name: 'STR-02', ip_address: '192.168.1.402', mac_address: 'F4:D4:88:5A:04:02', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 4, hardware_profile_id: 4 },
+      { computer_id: 29, computer_name: 'STR-03', ip_address: '192.168.1.403', mac_address: 'F4:D4:88:5A:04:03', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 4, hardware_profile_id: 4 },
+      { computer_id: 30, computer_name: 'STR-04', ip_address: '192.168.1.404', mac_address: 'F4:D4:88:5A:04:04', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 4, hardware_profile_id: 4 },
 
       // Zone 5: Cloud Remote Nodes (6 trạm)
-      { computer_id: 31, computer_name: 'CLOUD-01', ip_address: '192.168.1.501', mac_address: 'F4:D4:88:5A:05:01', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5 },
-      { computer_id: 32, computer_name: 'CLOUD-02', ip_address: '192.168.1.502', mac_address: 'F4:D4:88:5A:05:02', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 5 },
-      { computer_id: 33, computer_name: 'CLOUD-03', ip_address: '192.168.1.503', mac_address: 'F4:D4:88:5A:05:03', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5 },
-      { computer_id: 34, computer_name: 'CLOUD-04', ip_address: '192.168.1.504', mac_address: 'F4:D4:88:5A:05:04', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 5 },
-      { computer_id: 35, computer_name: 'CLOUD-05', ip_address: '192.168.1.505', mac_address: 'F4:D4:88:5A:05:05', status: ComputerStatus.REMOTE, is_remote_enabled: true, zone_id: 5 },
-      { computer_id: 36, computer_name: 'CLOUD-06', ip_address: '192.168.1.506', mac_address: 'F4:D4:88:5A:05:06', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5 }
+      { computer_id: 31, computer_name: 'CLOUD-01', ip_address: '192.168.1.501', mac_address: 'F4:D4:88:5A:05:01', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 },
+      { computer_id: 32, computer_name: 'CLOUD-02', ip_address: '192.168.1.502', mac_address: 'F4:D4:88:5A:05:02', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 },
+      { computer_id: 33, computer_name: 'CLOUD-03', ip_address: '192.168.1.503', mac_address: 'F4:D4:88:5A:05:03', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 },
+      { computer_id: 34, computer_name: 'CLOUD-04', ip_address: '192.168.1.504', mac_address: 'F4:D4:88:5A:05:04', status: ComputerStatus.IN_USE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 },
+      { computer_id: 35, computer_name: 'CLOUD-05', ip_address: '192.168.1.505', mac_address: 'F4:D4:88:5A:05:05', status: ComputerStatus.REMOTE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 },
+      { computer_id: 36, computer_name: 'CLOUD-06', ip_address: '192.168.1.506', mac_address: 'F4:D4:88:5A:05:06', status: ComputerStatus.ONLINE, is_remote_enabled: true, zone_id: 5, hardware_profile_id: 5 }
     ]);
 
     // Seed Status Logs for active machines
@@ -185,10 +214,53 @@ const seedData = async (db) => {
       { combo_id: 2, name: 'Combo Chiến Game 3H + Nước', price: 40000.00, duration_minutes: 180, allowed_tier: 1, is_active: true }
     ]);
 
+    // 10. Seed Hardware Components Catalog directly into MySQL CSDL
+    if (db.HardwareComponent) {
+      await safeSeed(db.HardwareComponent, [
+        // CPUs
+        { component_id: 1, category: 'cpu', name: 'Intel Core i9-14900K (24 Cores / 32 Threads @ 5.8GHz)' },
+        { component_id: 2, category: 'cpu', name: 'Intel Core i7-14700K (20 Cores / 28 Threads @ 5.6GHz)' },
+        { component_id: 3, category: 'cpu', name: 'Intel Core i5-13400F (10 Cores / 16 Threads @ 4.6GHz)' },
+        { component_id: 4, category: 'cpu', name: 'AMD Ryzen 7 7800X3D (8 Cores / 16 Threads @ 5.0GHz)' },
+        { component_id: 5, category: 'cpu', name: 'AMD Ryzen 9 7950X (16 Cores / 32 Threads @ 5.7GHz)' },
+        { component_id: 6, category: 'cpu', name: 'AMD EPYC 7763 (64 Cores / 128 Threads Hypervisor)' },
+
+        // GPUs
+        { component_id: 7, category: 'gpu', name: 'RTX 4090 24GB (Gigabyte AORUS Master)' },
+        { component_id: 8, category: 'gpu', name: 'RTX 4080 Super 16GB (ASUS ROG Strix OC)' },
+        { component_id: 9, category: 'gpu', name: 'RTX 4070 Ti Super 16GB (MSI Gaming X Slim)' },
+        { component_id: 10, category: 'gpu', name: 'RTX 4060 8GB (Zotac Gaming Twin Edge)' },
+        { component_id: 11, category: 'gpu', name: 'RTX 3060 12GB Dual Fan' },
+
+        // RAMs
+        { component_id: 12, category: 'ram', name: '32GB DDR5 6000MHz CL30 (Kingston Beast)' },
+        { component_id: 13, category: 'ram', name: '64GB DDR5 6000MHz (G.Skill Trident Z5 Neo)' },
+        { component_id: 14, category: 'ram', name: '32GB DDR4 3200MHz Dual Channel TeamGroup' },
+        { component_id: 15, category: 'ram', name: '128GB ECC Reg Quad-Channel' },
+
+        // Storages
+        { component_id: 16, category: 'storage', name: 'SAN NVMe 10Gbps (iSCSI Boot + 2TB Writeback RAM)' },
+        { component_id: 17, category: 'storage', name: 'High Throughput Cache 1TB SAN Boot' },
+        { component_id: 18, category: 'storage', name: 'Dual NVMe 2TB PCIe 4.0 Direct Capture' },
+        { component_id: 19, category: 'storage', name: '40Gbps Fiber SAN (Direct RDMA Ultra-low Latency)' },
+
+        // Monitors
+        { component_id: 20, category: 'monitor', name: '25" Fast-IPS 240Hz (BenQ ZOWIE XL2546K)' },
+        { component_id: 21, category: 'monitor', name: '27" 2K OLED 240Hz (ASUS ROG Swift PG27AQDM)' },
+        { component_id: 22, category: 'monitor', name: '24" Full HD 180Hz (ViewSonic Gaming)' },
+        { component_id: 23, category: 'monitor', name: '25" 360Hz BenQ ZOWIE XL2566K' },
+
+        // Gears
+        { component_id: 24, category: 'gear', name: 'Chuột Logitech G Pro X Superlight + Phím Cơ Custom + Tai Cloud II' },
+        { component_id: 25, category: 'gear', name: 'Chuột Razer DeathAdder V3 + Phím Huntsman + Tai Kraken' },
+        { component_id: 26, category: 'gear', name: 'Bộ Peripherals Standard Cyber Gaming' }
+      ]);
+    }
+
     console.log('✅ Database Seeding Completed Successfully.');
   } catch (error) {
     console.error('❌ Database Seeding Error:', error);
   }
 };
 
-module.exports = seedData;
+module.exports = seedData;

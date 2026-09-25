@@ -17,7 +17,8 @@ module.exports = (sequelize) => {
     status: { type: DataTypes.ENUM(...Object.values(ComputerStatus)), defaultValue: ComputerStatus.OFFLINE },
 
     is_remote_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
-    zone_id: { type: DataTypes.INTEGER, allowNull: false }
+    zone_id: { type: DataTypes.INTEGER, allowNull: false },
+    hardware_profile_id: { type: DataTypes.INTEGER, allowNull: true }
   }, {
     sequelize,
     modelName: 'Computer',
@@ -27,6 +28,7 @@ module.exports = (sequelize) => {
 
   Computer.associate = (models) => {
     Computer.belongsTo(models.ComputerZone, { foreignKey: 'zone_id' });
+    Computer.belongsTo(models.HardwareProfile, { foreignKey: 'hardware_profile_id' });
     Computer.belongsToMany(models.Game, { through: models.ComputerGame, foreignKey: 'computer_id' });
     Computer.hasMany(models.ComputerStatusLog, { foreignKey: 'computer_id' });
   };
