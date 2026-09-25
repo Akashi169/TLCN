@@ -12,6 +12,8 @@ router.post('/:id/switch', computerController.switchStation);
 
 router.get('/specs', computerController.getHardwareSpecs);
 router.post('/specs', computerController.createHardwareSpec);
+router.put('/specs/:id', computerController.updateHardwareSpec);
+router.delete('/specs/:id', computerController.deleteHardwareSpec);
 router.get('/', computerController.getComputers);
 router.get('/:id', computerController.getComputerById);
 router.post('/', computerController.createComputer);

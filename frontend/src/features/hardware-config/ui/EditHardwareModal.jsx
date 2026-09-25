@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, Cpu, MemoryStick, Gamepad2, HardDrive, PlusCircle, AlertCircle, Monitor, Headphones, Layers, CheckSquare, Square } from 'lucide-react';
+import { X, Cpu, MemoryStick, Gamepad2, HardDrive, Edit3, AlertCircle, Monitor, Headphones, Layers, CheckSquare, Square } from 'lucide-react';
 
 const HARDWARE_FIELDS = [
-  { key: 'cpu', label: 'Bộ xử lý (CPU)', icon: Cpu, iconColor: 'text-sky-600', listKey: 'cpus', placeholder: 'Nhập tên CPU tùy chỉnh...' },
-  { key: 'gpu', label: 'Card đồ họa (GPU)', icon: Gamepad2, iconColor: 'text-indigo-600', listKey: 'gpus', placeholder: 'Nhập tên GPU tùy chỉnh...' },
-  { key: 'ram', label: 'Bộ nhớ (RAM)', icon: MemoryStick, iconColor: 'text-purple-600', listKey: 'rams', placeholder: 'Nhập dung lượng/bus RAM tùy chỉnh...' },
-  { key: 'storage', label: 'Loại Lưu Trữ / SAN Boot', icon: HardDrive, iconColor: 'text-emerald-600', listKey: 'storages', placeholder: 'Nhập chuẩn SAN Boot/SSD...' },
-  { key: 'monitor', label: 'Màn hình (Monitor)', icon: Monitor, iconColor: 'text-amber-600', listKey: 'monitors', placeholder: 'Nhập kích thước & tần số quét...' },
-  { key: 'gear', label: 'Gear / Peripherals (Tùy chọn)', icon: Headphones, iconColor: 'text-rose-600', listKey: 'gears', placeholder: 'Nhập bàn phím, chuột, tai nghe...' }
+  { key: 'cpu', label: 'Bộ xử lý (CPU)', icon: Cpu, iconColor: 'text-sky-600', listKey: 'cpus', placeholder: 'Nhập tên CPU tùy chỉnh...', extractValue: (hw) => hw?.cpu?.model || '' },
+  { key: 'gpu', label: 'Card đồ họa (GPU)', icon: Gamepad2, iconColor: 'text-indigo-600', listKey: 'gpus', placeholder: 'Nhập tên GPU tùy chỉnh...', extractValue: (hw) => hw?.gpu?.model || '' },
+  { key: 'ram', label: 'Bộ nhớ (RAM)', icon: MemoryStick, iconColor: 'text-purple-600', listKey: 'rams', placeholder: 'Nhập dung lượng/bus RAM tùy chỉnh...', extractValue: (hw) => hw?.ram?.capacity || '' },
+  { key: 'storage', label: 'Loại Lưu Trữ / SAN Boot', icon: HardDrive, iconColor: 'text-emerald-600', listKey: 'storages', placeholder: 'Nhập chuẩn SAN Boot/SSD...', extractValue: (hw) => hw?.storage?.type || '' },
+  { key: 'monitor', label: 'Màn hình (Monitor)', icon: Monitor, iconColor: 'text-amber-600', listKey: 'monitors', placeholder: 'Nhập kích thước & tần số quét...', extractValue: (hw) => hw?.monitor || '' },
+  { key: 'gear', label: 'Gear / Peripherals (Tùy chọn)', icon: Headphones, iconColor: 'text-rose-600', listKey: 'gears', placeholder: 'Nhập bàn phím, chuột, tai nghe...', extractValue: (hw) => hw?.gear || '' }
 ];
 
-export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones = [], computers = [], hardwarePresets = {} }) {
+export default function EditHardwareModal({ isOpen, onClose, onSubmit, hardware, zones = [], computers = [], hardwarePresets = {} }) {
   const presets = hardwarePresets || {};
 
   const [formData, setFormData] = useState({
@@ -31,35 +31,37 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
   const [selectedComputers, setSelectedComputers] = useState([]);
   const [errorNotice, setErrorNotice] = useState('');
 
-  // Sync state when modal opens or when hardwarePresets arrive from CSDL API
+  // Sync state when modal opens or target hardware/CSDL presets change
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && hardware) {
       const activePresets = hardwarePresets || {};
-      const newSpecs = {};
 
+      const newSpecs = {};
       HARDWARE_FIELDS.forEach((field) => {
+        const rawVal = field.extractValue(hardware);
         const list = activePresets[field.listKey] || [];
-        const defaultSelect = list.length > 0 ? list[0] : 'custom';
+        const isInList = list.includes(rawVal);
 
         newSpecs[field.key] = {
-          select: defaultSelect,
-          custom: ''
+          select: isInList ? rawVal : (rawVal ? 'custom' : (list[0] || 'custom')),
+          custom: isInList ? '' : rawVal
         };
       });
 
       setSpecsState(newSpecs);
 
       setFormData({
-        profileName: '',
-        zoneId: zones[0]?.zone_id ? String(zones[0].zone_id) : '1',
-        description: ''
+        profileName: hardware.profileName || hardware.id || '',
+        zoneId: hardware.zoneId ? String(hardware.zoneId) : (zones[0]?.zone_id ? String(zones[0].zone_id) : '1'),
+        description: hardware.description || ''
       });
-      setSelectedComputers([]);
+
+      setSelectedComputers(hardware.assignedComputers || (hardware.id ? [hardware.id] : []));
       setErrorNotice('');
     }
-  }, [isOpen, hardwarePresets, zones]);
+  }, [isOpen, hardware, hardwarePresets, zones]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !hardware) return null;
 
   const handleSpecSelectChange = (key, val) => {
     setSpecsState((prev) => ({
@@ -112,25 +114,35 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
 
     const selectedZone = zones.find((z) => String(z.zone_id) === String(formData.zoneId)) || {};
 
-    const newProfile = {
-      id: formData.profileName.toUpperCase().replace(/\s+/g, '-'),
+    const updatedProfile = {
+      ...hardware,
+      id: hardware.id,
       profileName: formData.profileName.trim(),
       zoneId: formData.zoneId,
-      zoneName: selectedZone.zone_name || 'Phân Khu Mặc Định',
+      zoneName: selectedZone.zone_name || hardware.zoneName || 'Phân Khu',
       description: formData.description.trim(),
-      status: 'online',
-      statusLabel: 'Online',
-      cpu: { model: finalSpecs.cpu, specs: 'Hiệu năng cao' },
-      ram: { capacity: finalSpecs.ram, specs: 'Low-latency' },
-      gpu: { model: finalSpecs.gpu, edition: 'Gaming Edition' },
-      storage: { type: finalSpecs.storage, specs: 'BootROM High-Speed' },
+      cpu: {
+        model: finalSpecs.cpu,
+        specs: hardware.cpu?.specs || 'Hiệu năng cao'
+      },
+      ram: {
+        capacity: finalSpecs.ram,
+        specs: hardware.ram?.specs || 'Low-latency'
+      },
+      gpu: {
+        model: finalSpecs.gpu,
+        edition: hardware.gpu?.edition || 'Gaming Edition'
+      },
+      storage: {
+        type: finalSpecs.storage,
+        specs: hardware.storage?.specs || 'BootROM High-Speed'
+      },
       monitor: finalSpecs.monitor,
       gear: finalSpecs.gear,
-      assignedComputers: selectedComputers,
-      telemetry: { cpuTemp: 48, gpuTemp: 45, fanSpeed: '55%', sanPing: '0.20ms' }
+      assignedComputers: selectedComputers
     };
 
-    if (onSubmit) onSubmit(newProfile);
+    if (onSubmit) onSubmit(updatedProfile);
     setErrorNotice('');
     onClose();
   };
@@ -141,15 +153,15 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
         {/* Header */}
         <div className="px-6 py-3.5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/80">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-              <PlusCircle className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+              <Edit3 className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">
-                Tạo Mẫu Cấu Hình Phần Cứng (Hardware Profile)
+                Chỉnh Sửa Mẫu Cấu Hình: {hardware.profileName || hardware.id}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">
-                Thiết lập gói cấu hình chuẩn (CPU, GPU, RAM, SAN Boot, Peripherals) &amp; Áp dụng hàng loạt
+                Cập nhật thông số linh kiện &amp; Gán máy trạm áp dụng hàng loạt
               </p>
             </div>
           </div>
@@ -175,7 +187,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
           {/* SECTION 1: Thông tin chung gói cấu hình */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-slate-900 font-extrabold text-xs uppercase tracking-wider border-b border-slate-100 pb-2">
-              <Layers className="w-4 h-4 text-sky-600" />
+              <Layers className="w-4 h-4 text-indigo-600" />
               <span>1. Thông tin chung về mẫu cấu hình</span>
             </div>
 
@@ -187,10 +199,9 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                 <input
                   type="text"
                   required
-                  placeholder="VD: Dàn Thi Đấu Esports Pro, Dàn VIP Gaming..."
                   value={formData.profileName}
                   onChange={(e) => setFormData({ ...formData, profileName: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500/30 outline-none"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/30 outline-none"
                 />
               </div>
 
@@ -199,7 +210,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                 <select
                   value={formData.zoneId}
                   onChange={(e) => setFormData({ ...formData, zoneId: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500/30 outline-none cursor-pointer"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/30 outline-none cursor-pointer"
                 >
                   {zones.map((z) => (
                     <option key={z.zone_id} value={z.zone_id} className="text-xs">
@@ -214,10 +225,9 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
               <label className="block font-bold text-slate-700 mb-1 text-[11px]">Mô tả / Ghi chú kỹ thuật</label>
               <input
                 type="text"
-                placeholder="VD: Dàn máy chuyên phục vụ giải đấu FPS, màn hình 240Hz..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500/30 outline-none"
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/30 outline-none"
               />
             </div>
           </div>
@@ -225,7 +235,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
           {/* SECTION 2: Chi tiết linh kiện phần cứng (Data-Driven Render) */}
           <div className="space-y-3 pt-1">
             <div className="flex items-center gap-2 text-slate-900 font-extrabold text-xs uppercase tracking-wider border-b border-slate-100 pb-2">
-              <Cpu className="w-4 h-4 text-sky-600" />
+              <Cpu className="w-4 h-4 text-indigo-600" />
               <span>2. Chi tiết linh kiện phần cứng (Spec Details - Đọc từ CSDL API)</span>
             </div>
 
@@ -243,14 +253,14 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                     <select
                       value={fieldState.select}
                       onChange={(e) => handleSpecSelectChange(field.key, e.target.value)}
-                      className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-sky-500/30 outline-none cursor-pointer"
+                      className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/30 outline-none cursor-pointer"
                     >
                       {list.map((item, idx) => (
                         <option key={idx} value={item} className="text-xs font-medium text-slate-800">
                           {item}
                         </option>
                       ))}
-                      <option value="custom" className="text-xs font-semibold text-sky-700">
+                      <option value="custom" className="text-xs font-semibold text-indigo-700">
                         -- Nhập tùy chỉnh thủ công --
                       </option>
                     </select>
@@ -260,7 +270,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                         placeholder={field.placeholder}
                         value={fieldState.custom}
                         onChange={(e) => handleSpecCustomChange(field.key, e.target.value)}
-                        className="w-full mt-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:ring-2 focus:ring-sky-500/30 outline-none"
+                        className="w-full mt-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-900 focus:ring-2 focus:ring-indigo-500/30 outline-none"
                       />
                     )}
                   </div>
@@ -280,7 +290,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                 <button
                   type="button"
                   onClick={handleSelectAllComputers}
-                  className="text-xs font-bold text-sky-600 hover:text-sky-800 transition"
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition"
                 >
                   {selectedComputers.length === computers.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                 </button>
@@ -303,7 +313,7 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
                       onClick={() => toggleSelectComputer(compName)}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all text-left ${
                         isChecked
-                          ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -331,9 +341,9 @@ export default function CreateHardwareModal({ isOpen, onClose, onSubmit, zones =
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold rounded-xl shadow-xs transition"
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl shadow-xs transition"
             >
-              + Lưu Mẫu Cấu Hình
+              Cập Nhật Mẫu Cấu Hình
             </button>
           </div>
         </form>

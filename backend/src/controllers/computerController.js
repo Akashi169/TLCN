@@ -200,6 +200,45 @@ class ComputerController {
       next(error);
     }
   }
+
+  async updateHardwareSpec(req, res, next) {
+    try {
+      const { id } = req.params;
+      const updated = await computerService.updateHardwareSpec(id, req.body);
+      if (!updated) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Không tìm thấy máy trạm để cập nhật cấu hình'
+        });
+      }
+      return res.json({
+        status: 'success',
+        data: updated,
+        message: 'Cập nhật cấu hình máy thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteHardwareSpec(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await computerService.deleteHardwareSpec(id);
+      if (!deleted) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Không tìm thấy máy trạm để xóa cấu hình'
+        });
+      }
+      return res.json({
+        status: 'success',
+        message: 'Xóa cấu hình máy thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ComputerController();
