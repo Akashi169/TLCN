@@ -1,6 +1,17 @@
 const { Model, DataTypes } = require('sequelize');
+const { ComputerStatus } = require('../constants/enums');
 
-class ComputerZone extends Model {}
+class ComputerZone extends Model {
+  async getAvailableComputers() {
+    const Computer = this.sequelize.models.Computer;
+    return await Computer.findAll({
+      where: {
+        zone_id: this.zone_id,
+        status: ComputerStatus.OFFLINE
+      }
+    });
+  }
+}
 
 module.exports = (sequelize) => {
   ComputerZone.init({

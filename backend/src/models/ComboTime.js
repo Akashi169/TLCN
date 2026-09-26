@@ -1,7 +1,40 @@
 const { Model, DataTypes } = require('sequelize');
 const { ComboTimeStatus } = require('../constants/enums');
 
-class ComboTime extends Model {}
+class ComboTime extends Model {
+  isActive() {
+    return this.status === ComboTimeStatus.ACTIVE;
+  }
+
+  markExpired() {
+    this.status = ComboTimeStatus.EXPIRED;
+    return this.save();
+  }
+
+  cancel() {
+    this.status = ComboTimeStatus.CANCELLED;
+    return this.save();
+  }
+
+  calculateRemainingMinutes() {
+    if (!this.end_time) return 0;
+    const now = new Date();
+    const end = new Date(this.end_time);
+    const diffMs = end - now;
+    return Math.max(0, Math.floor(diffMs / (1000 * 60)));
+  }
+
+  isValidForZone(zoneTier) {
+    return !this.allowed_tier || zoneTier >= this.allowed_tier;
+  }
+
+  extendEndTime(minutes) {
+    const currentEnd = this.end_time ? new Date(this.end_time) : new Date();
+    currentEnd.setMinutes(currentEnd.getMinutes() + minutes);
+    this.end_time = currentEnd;
+    return this.save();
+  }
+}
 
 module.exports = (sequelize) => {
   ComboTime.init({

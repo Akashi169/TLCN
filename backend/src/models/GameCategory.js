@@ -1,6 +1,16 @@
 const { Model, DataTypes } = require('sequelize');
 
-class GameCategory extends Model {}
+class GameCategory extends Model {
+  async getGames() {
+    const Game = this.sequelize.models.Game;
+    return await Game.findAll({ where: { category_id: this.category_id } });
+  }
+
+  rename(newName) {
+    this.name = newName;
+    return this.save();
+  }
+}
 
 module.exports = (sequelize) => {
   GameCategory.init({

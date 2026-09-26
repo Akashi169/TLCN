@@ -1,7 +1,21 @@
 const { Model, DataTypes } = require('sequelize');
 const { TransactionType, TransactionCategory } = require('../constants/enums');
 
-class FinancialTransaction extends Model {}
+class FinancialTransaction extends Model {
+  record() {
+    return this.save();
+  }
+
+  cancel() {
+    this.category = TransactionCategory.REFUND;
+    return this.save();
+  }
+
+  getSignedAmount() {
+    const amt = parseFloat(this.amount || 0);
+    return this.type === TransactionType.EXPENSE ? -amt : amt;
+  }
+}
 
 module.exports = (sequelize) => {
   FinancialTransaction.init({

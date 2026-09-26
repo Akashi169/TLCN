@@ -1,7 +1,23 @@
 const { Model, DataTypes } = require('sequelize');
 const { UserRole, UserStatus } = require('../constants/enums');
 
-class User extends Model {}
+class User extends Model {
+  login(password) {
+    return true;
+  }
+
+  logout() {
+    return true;
+  }
+
+  changePassword(oldPass, newPass) {
+    return true;
+  }
+
+  isActive() {
+    return this.status === UserStatus.ACTIVE;
+  }
+}
 
 module.exports = (sequelize) => {
   User.init({

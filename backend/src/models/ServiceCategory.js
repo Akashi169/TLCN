@@ -1,6 +1,11 @@
 const { Model, DataTypes } = require('sequelize');
 
-class ServiceCategory extends Model {}
+class ServiceCategory extends Model {
+  rename(newName) {
+    this.name = newName;
+    return this.save();
+  }
+}
 
 module.exports = (sequelize) => {
   ServiceCategory.init({

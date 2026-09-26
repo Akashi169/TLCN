@@ -1,6 +1,15 @@
 const { Model, DataTypes } = require('sequelize');
 
-class ServiceOrderItem extends Model {}
+class ServiceOrderItem extends Model {
+  calculateSubtotal() {
+    return (this.quantity || 0) * parseFloat(this.price || 0);
+  }
+
+  async getOriginalItem() {
+    const ServiceItem = this.sequelize.models.ServiceItem;
+    return await ServiceItem.findByPk(this.service_item_id);
+  }
+}
 
 module.exports = (sequelize) => {
   ServiceOrderItem.init({
@@ -15,6 +24,11 @@ module.exports = (sequelize) => {
     tableName: 'service_order_item',
     timestamps: false
   });
+
+  ServiceOrderItem.associate = (models) => {
+    ServiceOrderItem.belongsTo(models.ServiceOrder, { foreignKey: 'order_id' });
+    ServiceOrderItem.belongsTo(models.ServiceItem, { foreignKey: 'service_item_id' });
+  };
 
   return ServiceOrderItem;
 };

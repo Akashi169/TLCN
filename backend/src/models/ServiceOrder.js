@@ -1,7 +1,35 @@
 const { Model, DataTypes } = require('sequelize');
 const { OrderStatus, PaymentStatus } = require('../constants/enums');
 
-class ServiceOrder extends Model {}
+class ServiceOrder extends Model {
+  addOrderItem(item, quantity) {
+    /* Logic tạo item trong đơn hàng */
+  }
+
+  attachComboTime(comboTime) {
+    /* Liên kết comboTime với order */
+  }
+
+  calculateTotal() {
+    /* Logic tính tổng tiền */
+    return 0;
+  }
+
+  submit() {
+    this.status = OrderStatus.PREPARING;
+    return this.save();
+  }
+
+  updateStatus(newStatus) {
+    this.status = newStatus;
+    return this.save();
+  }
+
+  cancel() {
+    this.status = OrderStatus.CANCELLED;
+    return this.save();
+  }
+}
 
 module.exports = (sequelize) => {
   ServiceOrder.init({
@@ -22,6 +50,7 @@ module.exports = (sequelize) => {
   ServiceOrder.associate = (models) => {
     ServiceOrder.belongsTo(models.Member, { foreignKey: 'used_by' });
     ServiceOrder.belongsTo(models.User, { foreignKey: 'processed_by' });
+    ServiceOrder.hasMany(models.ServiceOrderItem, { foreignKey: 'order_id', onDelete: 'CASCADE' });
     ServiceOrder.belongsToMany(models.ServiceItem, { through: models.ServiceOrderItem, foreignKey: 'order_id' });
     ServiceOrder.hasOne(models.ComboTime, { foreignKey: 'order_id', onDelete: 'CASCADE' });
   };

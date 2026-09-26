@@ -1,6 +1,14 @@
 const { Model, DataTypes } = require('sequelize');
 
-class MembershipRank extends Model {}
+class MembershipRank extends Model {
+  isEligible(point) {
+    return point >= this.required_point;
+  }
+
+  calculateDiscount(amount) {
+    return amount * (parseFloat(this.discount_percent || 0) / 100);
+  }
+}
 
 module.exports = (sequelize) => {
   MembershipRank.init({

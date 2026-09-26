@@ -1,6 +1,15 @@
 const { Model, DataTypes } = require('sequelize');
 
-class ComboItem extends Model {}
+class ComboItem extends Model {
+  async getServiceItem() {
+    const ServiceItem = this.sequelize.models.ServiceItem;
+    return await ServiceItem.findByPk(this.service_item_id);
+  }
+
+  getQuantity() {
+    return this.quantity;
+  }
+}
 
 module.exports = (sequelize) => {
   ComboItem.init({
@@ -13,6 +22,11 @@ module.exports = (sequelize) => {
     tableName: 'combo_item',
     timestamps: false
   });
+
+  ComboItem.associate = (models) => {
+    ComboItem.belongsTo(models.ComboPackage, { foreignKey: 'combo_id' });
+    ComboItem.belongsTo(models.ServiceItem, { foreignKey: 'service_item_id' });
+  };
 
   return ComboItem;
 };

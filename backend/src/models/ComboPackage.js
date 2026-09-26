@@ -1,6 +1,28 @@
 const { Model, DataTypes } = require('sequelize');
 
-class ComboPackage extends Model {}
+class ComboPackage extends Model {
+  isTimeValid(currentTime) {
+    if (this.start_time_limit && currentTime < this.start_time_limit) return false;
+    if (this.end_time_limit && currentTime > this.end_time_limit) return false;
+    return true;
+  }
+
+  canApplyToZone(zoneTier) {
+    return !this.allowed_tier || zoneTier >= this.allowed_tier;
+  }
+
+  async getComboItems() {
+    const ComboItem = this.sequelize.models.ComboItem;
+    return await ComboItem.findAll({ where: { combo_id: this.combo_id } });
+  }
+
+  updateInfo(price, duration, isActive) {
+    this.price = price;
+    this.duration_minutes = duration;
+    this.is_active = isActive;
+    return this.save();
+  }
+}
 
 module.exports = (sequelize) => {
   ComboPackage.init({
@@ -20,6 +42,7 @@ module.exports = (sequelize) => {
   });
 
   ComboPackage.associate = (models) => {
+    ComboPackage.hasMany(models.ComboItem, { foreignKey: 'combo_id', onDelete: 'CASCADE' });
     ComboPackage.belongsToMany(models.ServiceItem, { through: models.ComboItem, foreignKey: 'combo_id' });
   };
 

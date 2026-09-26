@@ -1,6 +1,33 @@
 const { Model, DataTypes } = require('sequelize');
 
-class ServiceItem extends Model {}
+class ServiceItem extends Model {
+  updateInfo(newName) {
+    this.name = newName;
+    return this.save();
+  }
+
+  updatePrice(newPrice) {
+    this.price = newPrice;
+    return this.save();
+  }
+
+  adjustStock(quantity) {
+    this.stock_quantity = (this.stock_quantity || 0) + quantity;
+    return this.save();
+  }
+
+  isAvailable() {
+    return this.is_available && (this.stock_quantity > 0);
+  }
+
+  calculateFinalPrice(customerRank) {
+    const basePrice = parseFloat(this.price || 0);
+    if (customerRank && customerRank.rank_level >= this.min_discount_rank) {
+      return basePrice - customerRank.calculateDiscount(basePrice);
+    }
+    return basePrice;
+  }
+}
 
 module.exports = (sequelize) => {
   ServiceItem.init({
@@ -21,6 +48,8 @@ module.exports = (sequelize) => {
   ServiceItem.associate = (models) => {
     ServiceItem.belongsTo(models.ServiceCategory, { foreignKey: 'category_id' });
     ServiceItem.belongsTo(models.MembershipRank, { foreignKey: 'min_discount_rank' });
+    ServiceItem.hasMany(models.ComboItem, { foreignKey: 'service_item_id' });
+    ServiceItem.hasMany(models.ServiceOrderItem, { foreignKey: 'service_item_id' });
     ServiceItem.belongsToMany(models.ComboPackage, { through: models.ComboItem, foreignKey: 'service_item_id' });
     ServiceItem.belongsToMany(models.ServiceOrder, { through: models.ServiceOrderItem, foreignKey: 'service_item_id' });
   };

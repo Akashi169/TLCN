@@ -1,7 +1,20 @@
 const { Model, DataTypes } = require('sequelize');
 const { ComputerStatus, SessionType } = require('../constants/enums');
 
-class ComputerStatusLog extends Model {}
+class ComputerStatusLog extends Model {
+  static async createLog(computerId, memberId, status, sessionType) {
+    return await ComputerStatusLog.create({
+      computer_id: computerId,
+      member_id: memberId,
+      status,
+      session_type: sessionType
+    });
+  }
+
+  getRecordedAt() {
+    return this.recorded_at;
+  }
+}
 
 module.exports = (sequelize) => {
   ComputerStatusLog.init({

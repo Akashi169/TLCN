@@ -1,6 +1,27 @@
 const { Model, DataTypes } = require('sequelize');
 
-class Game extends Model {}
+class Game extends Model {
+  updateInfo(name, image) {
+    this.name = name;
+    this.cover_image_url = image;
+    return this.save();
+  }
+
+  updatePath(newPath) {
+    this.executable_path = newPath;
+    return this.save();
+  }
+
+  toggleAvailability() {
+    this.is_available = !this.is_available;
+    return this.save();
+  }
+
+  async getCategory() {
+    const GameCategory = this.sequelize.models.GameCategory;
+    return await GameCategory.findByPk(this.category_id);
+  }
+}
 
 module.exports = (sequelize) => {
   Game.init({

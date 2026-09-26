@@ -7,9 +7,38 @@ class Member extends Model {
     return this.save();
   }
 
+  withdraw(amount) {
+    this.real_balance = parseFloat(this.real_balance || 0) - amount;
+    return this.save();
+  }
+
+  addPoint(point) {
+    this.point = (this.point || 0) + point;
+    return this.save();
+  }
+
+  deductPoint(point) {
+    this.point = (this.point || 0) - point;
+    return this.save();
+  }
+
   deductRealBalance(amount) {
     this.real_balance = parseFloat(this.real_balance || 0) - amount;
     return this.save();
+  }
+
+  deductBonusBalance(amount) {
+    this.bonus_balance = parseFloat(this.bonus_balance || 0) - amount;
+    return this.save();
+  }
+
+  changeRank(newRank) {
+    this.rank_id = typeof newRank === 'object' ? newRank.rank_id : newRank;
+    return this.save();
+  }
+
+  canPay(amount) {
+    return (parseFloat(this.real_balance || 0) + parseFloat(this.bonus_balance || 0)) >= amount;
   }
 
   updateProfile(phone, id_number) {

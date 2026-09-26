@@ -6,6 +6,55 @@ class Computer extends Model {
     this.status = newStatus;
     await this.save();
   }
+
+  lock() {
+    this.status = ComputerStatus.LOCKED;
+    return this.save();
+  }
+
+  unlock() {
+    this.status = ComputerStatus.OFFLINE;
+    return this.save();
+  }
+
+  restart() {
+    /* Logic gửi tín hiệu restart */
+    return true;
+  }
+
+  shutdown() {
+    /* Logic gửi tín hiệu shutdown */
+    return true;
+  }
+
+  pause() {
+    this.status = ComputerStatus.PAUSE;
+    return this.save();
+  }
+
+  resume() {
+    this.status = ComputerStatus.IN_USE;
+    return this.save();
+  }
+
+  sendNotification(message) {
+    /* Logic gửi thông báo tới máy trạm */
+    return true;
+  }
+
+  setMaintenance() {
+    this.status = ComputerStatus.MAINTENANCE;
+    return this.save();
+  }
+
+  removeMaintenance() {
+    this.status = ComputerStatus.OFFLINE;
+    return this.save();
+  }
+
+  isAvailable() {
+    return this.status === ComputerStatus.OFFLINE;
+  }
 }
 
 module.exports = (sequelize) => {

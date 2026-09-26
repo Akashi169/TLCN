@@ -3,7 +3,28 @@ const { SessionType } = require('../constants/enums');
 
 class PricingPlan extends Model {
   calculatePrice(minutes) {
-    return (parseFloat(this.price_per_hour) / 60) * minutes;
+    return (parseFloat(this.price_per_hour || 0) / 60) * minutes;
+  }
+
+  activate() {
+    this.is_active = true;
+    return this.save();
+  }
+
+  deactivate() {
+    this.is_active = false;
+    return this.save();
+  }
+
+  updatePrice(newPrice) {
+    this.price_per_hour = newPrice;
+    return this.save();
+  }
+
+  isApplicable(type, time, zoneId) {
+    if (!this.is_active) return false;
+    if (this.plan_type && this.plan_type !== type) return false;
+    return true;
   }
 }
 
