@@ -29,8 +29,14 @@ const runMigrations = async () => {
       }
     };
 
-    // 1. users: password -> password_hash
+    // 1. users: password -> password_hash & avatar_url -> TEXT
     await ensureColumn('users', 'password', 'password_hash', 'VARCHAR(255) NOT NULL DEFAULT ""');
+
+    try {
+      await db.sequelize.query("ALTER TABLE `users` MODIFY COLUMN `avatar_url` TEXT NULL");
+    } catch (e) {
+      // Ignore if table/column alter notice
+    }
 
     // Clean up old enum values in users table before altering ENUM column
     try {

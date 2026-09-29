@@ -10,10 +10,14 @@ const seedData = async (db) => {
   try {
     const hashedPassword = bcrypt.hashSync('123456', 10);
 
-    // Helper for safe seeding: inserts missing items without failing if some exist
-    const safeSeed = async (model, data) => {
+    // Helper for safe seeding: inserts missing items or updates duplicate fields
+    const safeSeed = async (model, data, updateFields) => {
       try {
-        await model.bulkCreate(data, { ignoreDuplicates: true });
+        if (updateFields) {
+          await model.bulkCreate(data, { updateOnDuplicate: updateFields });
+        } else {
+          await model.bulkCreate(data, { ignoreDuplicates: true });
+        }
       } catch (err) {
         console.warn(`[Seeder Warning] Error seeding ${model.name || 'table'}:`, err.message);
       }
@@ -26,6 +30,162 @@ const seedData = async (db) => {
       { rank_id: 3, name: 'Vàng', required_point: 1500, rank_level: 3, discount_percent: 10.00 },
       { rank_id: 4, name: 'Kim Cương', required_point: 3000, rank_level: 4, discount_percent: 15.00 }
     ]);
+
+    // 1.5. Seed Users & Customer Members
+    if (db.User && db.Member) {
+      await safeSeed(db.User, [
+        {
+          user_id: 1,
+          username: 'admin',
+          avatar_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs8dBAUHnsFAlRsHsjgaT6wrKt-GrttfGiw1_eIniAUOa-8Njbsfgqvj8LCwo2GG725KkvX-7UNAQWJU9OuU_WzUP2CgXPbJRiUV2hQPM7ZklsLgfjfm4Z126zsxn16iDfJkNt5VahCr6FbdbVPCJ1uVXn-eawT4Ch_6ofpZq9gypCMIlKT5S6zHbGA5K0ArpqFJa2jp1YtccknO3eEtqIE2EFI4SYJqeoQORRG8KlTgY0AUReON8',
+          password_hash: hashedPassword,
+          full_name: 'Quản Trị Viên',
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 2,
+          username: 'user',
+          avatar_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs8dBAUHnsFAlRsHsjgaT6wrKt-GrttfGiw1_eIniAUOa-8Njbsfgqvj8LCwo2GG725KkvX-7UNAQWJU9OuU_WzUP2CgXPbJRiUV2hQPM7ZklsLgfjfm4Z126zsxn16iDfJkNt5VahCr6FbdbVPCJ1uVXn-eawT4Ch_6ofpZq9gypCMIlKT5S6zHbGA5K0ArpqFJa2jp1YtccknO3eEtqIE2EFI4SYJqeoQORRG8KlTgY0AUReON8',
+          password_hash: hashedPassword,
+          full_name: 'Khách Hàng VIP',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 3,
+          username: 'staff',
+          avatar_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs8dBAUHnsFAlRsHsjgaT6wrKt-GrttfGiw1_eIniAUOa-8Njbsfgqvj8LCwo2GG725KkvX-7UNAQWJU9OuU_WzUP2CgXPbJRiUV2hQPM7ZklsLgfjfm4Z126zsxn16iDfJkNt5VahCr6FbdbVPCJ1uVXn-eawT4Ch_6ofpZq9gypCMIlKT5S6zHbGA5K0ArpqFJa2jp1YtccknO3eEtqIE2EFI4SYJqeoQORRG8KlTgY0AUReON8',
+          password_hash: hashedPassword,
+          full_name: 'Nhân Viên Thu Ngân A',
+          role: UserRole.EMPLOYEE || UserRole.STAFF || 'STAFF',
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 4,
+          username: 'employee',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Nhân Viên Thu Ngân B',
+          role: UserRole.EMPLOYEE || UserRole.STAFF || 'STAFF',
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 5,
+          username: 'customer',
+          avatar_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs8dBAUHnsFAlRsHsjgaT6wrKt-GrttfGiw1_eIniAUOa-8Njbsfgqvj8LCwo2GG725KkvX-7UNAQWJU9OuU_WzUP2CgXPbJRiUV2hQPM7ZklsLgfjfm4Z126zsxn16iDfJkNt5VahCr6FbdbVPCJ1uVXn-eawT4Ch_6ofpZq9gypCMIlKT5S6zHbGA5K0ArpqFJa2jp1YtccknO3eEtqIE2EFI4SYJqeoQORRG8KlTgY0AUReON8',
+          password_hash: hashedPassword,
+          full_name: 'Khách Hàng VIP',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 6,
+          username: 'nam.nv',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Nguyễn Văn Nam',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 7,
+          username: 'long.hoang',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Hoàng Long',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 8,
+          username: 'baotran99',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Trần Quốc Bảo',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 9,
+          username: 'khoa_cyber',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Lê Minh Khoa',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 10,
+          username: 'linh.stream',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Phạm Thùy Linh',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        },
+        {
+          user_id: 11,
+          username: 'dang.dh',
+          avatar_url: '',
+          password_hash: hashedPassword,
+          full_name: 'Đỗ Hải Đăng',
+          role: UserRole.MEMBER,
+          status: UserStatus.ACTIVE
+        }
+      ], ['username', 'password_hash', 'full_name', 'role', 'status']);
+
+      await safeSeed(db.Member, [
+        {
+          member_id: 2,
+          phone: '+84 900 000 002',
+          real_balance: 500000.00,
+          bonus_balance: 50000.00,
+          point: 100,
+          rank_id: 3
+        },
+        {
+          member_id: 3,
+          phone: '+84 912 849 201',
+          real_balance: 1250000.00,
+          bonus_balance: 350000.00,
+          point: 2850,
+          rank_id: 3
+        },
+        {
+          member_id: 4,
+          phone: '+84 988 777 666',
+          real_balance: 500000.00,
+          bonus_balance: 100000.00,
+          point: 1200,
+          rank_id: 2
+        },
+        {
+          member_id: 5,
+          phone: '+84 977 111 222',
+          real_balance: 3200000.00,
+          bonus_balance: 800000.00,
+          point: 4500,
+          rank_id: 4
+        },
+        {
+          member_id: 6,
+          phone: '+84 933 444 555',
+          real_balance: 150000.00,
+          bonus_balance: 20000.00,
+          point: 350,
+          rank_id: 1
+        },
+        {
+          member_id: 7,
+          phone: '+84 905 666 777',
+          real_balance: 850000.00,
+          bonus_balance: 150000.00,
+          point: 1800,
+          rank_id: 3
+        }
+      ]);
+    }
 
     // 2. Seed Pricing Plans
     await safeSeed(db.PricingPlan, [

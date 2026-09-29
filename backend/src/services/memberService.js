@@ -43,7 +43,6 @@ class MemberService {
           username: m.userInfo ? m.userInfo.username : '',
           full_name: m.userInfo ? m.userInfo.full_name : '',
           phone: m.phone || null,
-          id_number: m.id_number || null,
           status: m.userInfo ? m.userInfo.status : 'ACTIVE',
           rank_id: m.rank_id,
           rank_name: m.MembershipRank ? m.MembershipRank.name : 'Đồng',
@@ -86,9 +85,9 @@ class MemberService {
   }
 
   /**
-   * Chỉnh sửa thông tin hồ sơ cơ bản (Họ tên, Số điện thoại, CCCD)
+   * Chỉnh sửa thông tin hồ sơ cơ bản (Họ tên, Số điện thoại)
    */
-  async updateMemberInfo(memberId, { full_name, phone_number, phone, id_number }) {
+  async updateMemberInfo(memberId, { full_name, phone_number, phone }) {
     try {
       const member = await db.Member.findByPk(memberId, {
         include: [{ model: db.User, as: 'userInfo' }]
@@ -98,7 +97,6 @@ class MemberService {
       if (full_name !== undefined) member.userInfo.full_name = full_name;
       const newPhone = phone || phone_number;
       if (newPhone !== undefined) member.phone = newPhone;
-      if (id_number !== undefined) member.id_number = id_number;
 
       await member.userInfo.save();
       await member.save();
