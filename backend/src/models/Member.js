@@ -41,9 +41,8 @@ class Member extends Model {
     return (parseFloat(this.real_balance || 0) + parseFloat(this.bonus_balance || 0)) >= amount;
   }
 
-  updateProfile(phone, id_number) {
-    this.phone = phone;
-    this.id_number = id_number;
+  updateProfile({ phone }) {
+    if (phone !== undefined) this.phone = phone;
     return this.save();
   }
 }
@@ -51,7 +50,6 @@ class Member extends Model {
 module.exports = (sequelize) => {
   Member.init({
     member_id: { type: DataTypes.INTEGER, primaryKey: true },
-    id_number: { type: DataTypes.STRING(50) },
     phone: { type: DataTypes.STRING(20) },
     real_balance: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.00 },
     bonus_balance: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.00 },

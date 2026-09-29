@@ -16,6 +16,7 @@ const computerRoutes = require('./src/routes/computerRoutes');
 const promotionRoutes = require('./src/routes/promotionRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
 const healthRoutes = require('./src/routes/healthRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
 
 const errorHandler = require('./src/middleware/errorHandler');
 
@@ -39,6 +40,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/computers', computerRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/transactions', transactionRoutes);
