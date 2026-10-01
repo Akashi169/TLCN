@@ -30,7 +30,7 @@ export default function ProfileIdentityHeader({ profile, onAvatarChange }) {
     <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200/80">
       {/* Top Banner Gradient */}
       <div
-        className="h-36 sm:h-40 w-full relative flex items-start justify-between p-4"
+        className="h-36 sm:h-40 w-full relative overflow-hidden flex items-start justify-between p-4"
         style={{ background: 'linear-gradient(135deg, #090e1a 0%, #171d3d 45%, #0369a1 80%, #06b6d4 100%)' }}
       >
         <div
@@ -51,9 +51,9 @@ export default function ProfileIdentityHeader({ profile, onAvatarChange }) {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 -mt-12 sm:-mt-14 relative z-20">
           {/* Avatar Container */}
           <div className="relative group shrink-0">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shadow-xl ring-4 ring-white bg-slate-100">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shrink-0 shadow-xl ring-4 ring-white bg-slate-100 relative">
               <img
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full max-w-full max-h-full block object-cover transition-transform duration-300 group-hover:scale-105"
                 alt="Avatar"
                 src={profile?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs8dBAUHnsFAlRsHsjgaT6wrKt-GrttfGiw1_eIniAUOa-8Njbsfgqvj8LCwo2GG725KkvX-7UNAQWJU9OuU_WzUP2CgXPbJRiUV2hQPM7ZklsLgfjfm4Z126zsxn16iDfJkNt5VahCr6FbdbVPCJ1uVXn-eawT4Ch_6ofpZq9gypCMIlKT5S6zHbGA5K0ArpqFJa2jp1YtccknO3eEtqIE2EFI4SYJqeoQORRG8KlTgY0AUReON8'}
               />
@@ -84,7 +84,7 @@ export default function ProfileIdentityHeader({ profile, onAvatarChange }) {
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 border border-amber-400/40 shadow-xs">
                 <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                 <span className="text-[11px] font-extrabold uppercase tracking-wider font-mono">
-                  ⭐ VÀNG
+                  ⭐ {(profile?.rank?.name || 'Đồng').toUpperCase()}
                 </span>
               </div>
             </div>
