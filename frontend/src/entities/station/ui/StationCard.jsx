@@ -1,32 +1,46 @@
 import React from 'react';
-import { User, Cloud, Power, Wrench, Clock, Thermometer, Wifi } from 'lucide-react';
-import { STATION_TYPES } from '../../../shared/data/mockData';
+import { User, Cloud, Power, Wrench, Clock, Thermometer, Wifi, Lock } from 'lucide-react';
+import { STATION_TYPES } from '../../../shared/constants/stationConstants';
 
 const typeIconMap = {
     local: User,
     cloud: Cloud,
     ready: Power,
-    maint: Wrench
+    maint: Wrench,
+    off: Power,
+    locked: Lock
 };
 
 export default function StationCard({ station, onClick }) {
     if (!station) return null;
 
-    const typeDef = STATION_TYPES[station.type] || {
-        label: 'Sẵn sàng',
-        color: 'emerald',
-        bg: 'bg-emerald-100',
-        text: 'text-emerald-950',
-        border: 'border-emerald-300'
+    const statusUpper = String(station.status || '').toUpperCase();
+    const isOffline = statusUpper === 'OFFLINE' || station.type === 'off';
+    const isMaint = statusUpper === 'MAINTENANCE' || station.type === 'maint';
+    const isLocked = statusUpper === 'LOCKED' || station.type === 'locked';
+    const isOnlineReady = (statusUpper === 'ONLINE' || station.type === 'ready') && !station.user;
+
+    const currentType = isOffline ? 'off' : isMaint ? 'maint' : isLocked ? 'locked' : isOnlineReady ? 'ready' : (station.type || 'local');
+
+    const typeDef = STATION_TYPES[currentType] || {
+        label: isOffline ? 'Tắt Nguồn' : isMaint ? 'Bảo Trì' : isLocked ? 'Tạm Khóa' : 'Sẵn Sàng',
+        bg: isOffline ? 'bg-slate-100' : isMaint ? 'bg-rose-100' : isLocked ? 'bg-amber-100' : 'bg-emerald-100',
+        text: isOffline ? 'text-slate-600' : isMaint ? 'text-rose-950' : isLocked ? 'text-amber-950' : 'text-emerald-950',
+        border: isOffline ? 'border-slate-300' : isMaint ? 'border-rose-300' : isLocked ? 'border-amber-300' : 'border-emerald-300'
     };
     
-    const IconComponent = typeIconMap[station.type] || Power;
-    const isVacant = station.type === 'ready' || station.type === 'maint' || !station.user;
+    const IconComponent = typeIconMap[currentType] || Power;
+    const isNonSession = isOffline || isMaint || isLocked || isOnlineReady || !station.user;
+
     const tooltipText = `Máy ${station.id} • ${
         station.user
             ? `Tài khoản: ${station.user} (${station.game || 'Game'})`
-            : station.type === 'maint'
+            : isOffline
+            ? 'Đã tắt nguồn (Offline)'
+            : isMaint
             ? 'Đang kiểm tra bảo trì'
+            : isLocked
+            ? 'Trạm đang tạm khóa'
             : 'Sẵn sàng phục vụ khách'
     }`;
 
@@ -43,22 +57,38 @@ export default function StationCard({ station, onClick }) {
                 </span>
                 <span
                     className={`w-5.5 h-5.5 rounded-md ${typeDef.bg} ${typeDef.text} flex items-center justify-center border ${typeDef.border} shadow-2xs`}
-                    title={`Loại máy: ${typeDef.label}`}
+                    title={`Trạng thái: ${typeDef.label}`}
                 >
                     <IconComponent className="w-3.5 h-3.5 shrink-0" />
                 </span>
             </div>
 
-            {/* Middle Content: User & Game or High-Contrast Centered Status for Vacant */}
-            {isVacant ? (
+            {/* Middle Content: User & Game or Centered Status for Non-Active Sessions */}
+            {isNonSession ? (
                 <div className="my-auto py-1 text-center flex flex-col items-center justify-center">
-                    {station.type === 'maint' ? (
+                    {isOffline ? (
+                        <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 shadow-2xs text-[11px] font-mono font-extrabold uppercase tracking-wide"
+                            title="Máy đã tắt nguồn"
+                        >
+                            <Power className="w-3 h-3 text-slate-500 shrink-0" />
+                            TẮT NGUỒN
+                        </span>
+                    ) : isMaint ? (
                         <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-950 border border-rose-300 shadow-2xs text-[11px] font-mono font-extrabold uppercase tracking-wide"
                             title="Máy đang trong quá trình bảo trì kỹ thuật"
                         >
                             <Wrench className="w-3 h-3 text-rose-700 shrink-0" />
                             BẢO TRÌ
+                        </span>
+                    ) : isLocked ? (
+                        <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs text-[11px] font-mono font-extrabold uppercase tracking-wide"
+                            title="Máy hiện đang tạm khóa"
+                        >
+                            <Lock className="w-3 h-3 text-amber-700 shrink-0" />
+                            TẠM KHÓA
                         </span>
                     ) : (
                         <span
@@ -87,8 +117,8 @@ export default function StationCard({ station, onClick }) {
                 </div>
             )}
 
-            {/* Bottom Row: Balanced Micro-UI Tags for Active Sessions */}
-            {!isVacant && (
+            {/* Bottom Row: Micro-UI Tags for Active Sessions */}
+            {!isNonSession && (
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 gap-1">
                     {/* Time Tag */}
                     <span
@@ -99,7 +129,7 @@ export default function StationCard({ station, onClick }) {
                         {station.time || '0h 0m'}
                     </span>
 
-                    {/* Telemetry / Temp / Latency Tag */}
+                    {/* Telemetry Tag */}
                     <span
                         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-900 border border-slate-300 shadow-2xs truncate"
                         title={`Thông số thiết bị: ${station.telemetry || station.latency || 'Hoạt động bình thường'}`}

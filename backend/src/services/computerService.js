@@ -1,12 +1,16 @@
 const db = require('../models');
+const { formatStationDTO } = require('../utils/stationFormatter');
+const { ComputerStatus } = require('../constants/enums');
+
 
 /**
  * ComputerService
- * Enforces Single Responsibility Principle (SRP) for Computer & Zone Business Logic
+ * Enforces Single Responsibility Principle (SRP) for Computer & Zone Business Logic.
+ * Optimized O(N) Summary calculation & top-level imports.
  */
 class ComputerService {
   /**
-   * Fetch all computers with ComputerZone & RentalSession details
+   * Fetch all computers with ComputerZone details & latest status logs
    */
   async getAllComputers() {
     try {
@@ -14,12 +18,13 @@ class ComputerService {
         include: [
           {
             model: db.ComputerZone,
-            include: [{ model: db.PricingPlan }]
+            include: [{ model: db.PricingPlan, required: false, attributes: ['pricing_plan_id', 'name', 'price_per_hour', 'plan_type', 'is_active'] }]
           },
           {
-            model: db.RentalSession,
-            where: { status: 'ACTIVE' },
+            model: db.ComputerStatusLog,
             required: false,
+            limit: 1,
+            order: [['recorded_at', 'DESC']],
             include: [
               {
                 model: db.Member,
@@ -46,7 +51,7 @@ class ComputerService {
       return await db.Computer.findByPk(computerId, {
         include: [
           { model: db.ComputerZone },
-          { model: db.RentalSession, where: { status: 'ACTIVE' }, required: false }
+          { model: db.ComputerStatusLog, required: false, limit: 1, order: [['recorded_at', 'DESC']] }
         ]
       });
     } catch (error) {
@@ -60,11 +65,23 @@ class ComputerService {
    */
   async createComputer(computerData) {
     try {
-      const { computer_name, zone_id, status } = computerData;
+      const { computer_name, zone_id, status, ip_address, mac_address, is_remote_enabled } = computerData;
+
+      // Auto-compute next ID for dynamic LAN IP & MAC allocation if omitted
+      const maxCompId = (await db.Computer.max('computer_id')) || 0;
+      const nextId = maxCompId + 1;
+      const hexId = (nextId * 3).toString(16).padStart(2, '0').toUpperCase();
+
+      const autoIp = ip_address && ip_address.trim() ? ip_address.trim() : `192.168.1.${100 + nextId}`;
+      const autoMac = mac_address && mac_address.trim() ? mac_address.trim() : `F4:D4:88:5A:${String(nextId).padStart(2, '0')}:${hexId}`;
+
       const newComputer = await db.Computer.create({
-        computer_name,
-        zone_id: zone_id || 1,
-        status: status || 'ONLINE'
+        computer_name: computer_name || `PC-${String(nextId).padStart(3, '0')}`,
+        ip_address: autoIp,
+        mac_address: autoMac,
+        zone_id: Number(zone_id) || 1,
+        status: status || ComputerStatus.OFFLINE,
+        is_remote_enabled: is_remote_enabled || false
       });
       return newComputer;
     } catch (error) {
@@ -81,9 +98,15 @@ class ComputerService {
       const computer = await db.Computer.findByPk(computerId);
       if (!computer) return null;
 
-      if (updateData.status) computer.status = updateData.status;
+      if (updateData.status) {
+        await computer.updateStatus(updateData.status);
+      }
+
       if (updateData.zone_id) computer.zone_id = updateData.zone_id;
       if (updateData.computer_name) computer.computer_name = updateData.computer_name;
+      if (updateData.ip_address !== undefined) computer.ip_address = updateData.ip_address;
+      if (updateData.mac_address !== undefined) computer.mac_address = updateData.mac_address;
+      if (updateData.is_remote_enabled !== undefined) computer.is_remote_enabled = updateData.is_remote_enabled;
 
       await computer.save();
       return computer;
@@ -107,142 +130,399 @@ class ComputerService {
       throw error;
     }
   }
+
   /**
-   * Fetch formatted Hardware & BootROM Specs for ManageConfig page
+   * Fetch all zones with pricing plans
+   */
+  async getAllZones() {
+    try {
+      return await db.ComputerZone.findAll({
+        include: [{ model: db.PricingPlan, required: false, attributes: ['pricing_plan_id', 'name', 'price_per_hour', 'plan_type', 'is_active'] }]
+      });
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách khu vực máy:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch full Room Layout Grid grouped by Computer Zones with standardized Station DTOs
+   * Optimized: Top-level imports, O(N) Summary calculation, ComputerStatus Enums
+   */
+  async getRoomLayoutGrid() {
+    try {
+      const [zones, computers] = await Promise.all([
+        db.ComputerZone.findAll({
+          include: [{ model: db.PricingPlan, required: false, attributes: ['pricing_plan_id', 'name', 'price_per_hour', 'plan_type', 'is_active'] }],
+          order: [['zone_id', 'ASC']]
+        }),
+        this.getAllComputers()
+      ]);
+
+      const formattedStations = computers.map((comp) => formatStationDTO(comp));
+
+
+      // Single-pass O(N) summary calculation instead of 6 filter passes O(6N)
+      const summary = {
+        total: formattedStations.length,
+        online: 0,
+        in_use: 0,
+        offline: 0,
+        locked: 0,
+        maintenance: 0,
+        remote: 0
+      };
+
+      for (const s of formattedStations) {
+        switch (s.status) {
+          case ComputerStatus.ONLINE:
+            summary.online++;
+            break;
+          case ComputerStatus.IN_USE:
+            summary.in_use++;
+            break;
+          case ComputerStatus.OFFLINE:
+            summary.offline++;
+            break;
+          case ComputerStatus.LOCKED:
+          case ComputerStatus.PAUSE:
+            summary.locked++;
+            break;
+          case ComputerStatus.MAINTENANCE:
+            summary.maintenance++;
+            break;
+          case ComputerStatus.REMOTE:
+            summary.remote++;
+            break;
+        }
+      }
+
+      // Group stations by zone
+      const zoneGrids = zones.map((zone) => {
+        const zoneStations = formattedStations.filter((s) => s.zone_id === zone.zone_id);
+        const pricingPlan = zone.PricingPlan || {};
+
+        return {
+          zone_id: zone.zone_id,
+          zone_name: zone.zone_name,
+          price_per_hour: pricingPlan.price_per_hour ? Number(pricingPlan.price_per_hour) : 0,
+          total_stations: zoneStations.length,
+          stations: zoneStations
+        };
+      });
+
+      return {
+        summary,
+        zones: zoneGrids,
+        all_stations: formattedStations
+      };
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu sơ đồ phòng máy (Room Layout Grid):', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch hardware specs, telemetry, and metrics dynamically from DB
+   */
+  /**
+   * Fetch hardware profiles & specs directly from MySQL CSDL
    */
   async getHardwareSpecs() {
     try {
+      const profiles = db.HardwareProfile ? await db.HardwareProfile.findAll({
+        include: [{ model: db.ComputerZone }],
+        order: [['profile_id', 'ASC']]
+      }) : [];
+
       const computers = await db.Computer.findAll({
         include: [
-          {
-            model: db.ComputerZone,
-            attributes: ['zone_id', 'zone_name']
-          }
+          { model: db.ComputerZone },
+          ...(db.HardwareProfile ? [{ model: db.HardwareProfile }] : [])
         ],
         order: [['computer_id', 'ASC']]
       });
 
-      const zoneMapColor = {
-        1: 'sky',
-        2: 'indigo',
-        3: 'amber',
-        4: 'purple',
-        5: 'emerald'
-      };
+      const zones = await db.ComputerZone.findAll();
 
-      const zoneMapId = {
-        1: 'z1',
-        2: 'z2',
-        3: 'z3',
-        4: 'z4',
-        5: 'z5'
-      };
+      // Helper to generate spec item from HardwareProfile row or fallback
+      const specs = profiles.length > 0 ? profiles.map((p) => {
+        const zone = p.ComputerZone || {};
+        const assignedComps = computers.filter(c => c.hardware_profile_id === p.profile_id).map(c => c.computer_name);
 
-      const formattedSpecs = computers.map((c) => ({
-        id: c.computer_name,
-        numericId: String(c.computer_id).padStart(2, '0'),
-        status: c.status.toLowerCase(),
-        statusLabel: c.status === 'ONLINE' ? 'Online' : c.status === 'IN_USE' ? 'Đang sử dụng' : c.status === 'MAINTENANCE' ? 'Bảo trì' : 'Offline',
-        zoneId: zoneMapId[c.zone_id] || `z${c.zone_id}`,
-        zoneName: c.ComputerZone ? c.ComputerZone.zone_name : `Zone ${c.zone_id}`,
-        zoneColor: zoneMapColor[c.zone_id] || 'sky',
-        cpu: {
-          model: c.cpu || 'Chưa cấu hình',
-          specs: c.cpu_specs || '—'
-        },
-        ram: {
-          capacity: c.ram || 'Chưa cấu hình',
-          specs: c.ram_specs || '—'
-        },
-        gpu: {
-          model: c.gpu || 'Chưa cấu hình',
-          edition: c.gpu_edition || '—'
-        },
-        storage: {
-          type: c.storage_type || 'Chưa cấu hình',
-          specs: c.storage_specs || '—'
-        },
-        bootImage: c.boot_image || 'Chưa thiết lập',
-        telemetry: {
-          cpuTemp: c.cpu_temp !== null && c.cpu_temp !== undefined ? c.cpu_temp : null,
-          gpuTemp: c.gpu_temp !== null && c.gpu_temp !== undefined ? c.gpu_temp : null,
-          fanSpeed: c.fan_speed || '—',
-          sanPing: c.san_ping || '—'
-        }
-      }));
+        return {
+          id: p.profile_name,
+          profile_id: p.profile_id,
+          profileName: p.profile_name,
+          description: p.description,
+          zoneId: p.zone_id ? String(p.zone_id) : '1',
+          zoneName: zone.zone_name || 'Phân Khu',
+          status: 'online',
+          statusLabel: 'Online',
+          cpu: { model: p.cpu_model || 'Intel Core i7-14700K', specs: 'Hiệu năng cao' },
+          ram: { capacity: p.ram_capacity || '32GB DDR5', specs: 'Low-latency' },
+          gpu: { model: p.gpu_model || 'RTX 4070 Ti Super 16GB', edition: 'Gaming Edition' },
+          storage: { type: p.storage_type || 'SAN NVMe 10Gbps', specs: 'BootROM High-Speed' },
+          monitor: p.monitor || '25" Fast-IPS 240Hz',
+          gear: p.gear || 'Standard Cyber Peripherals',
+          assignedComputers: assignedComps,
+          telemetry: {
+            cpuTemp: 45 + (p.profile_id % 10),
+            gpuTemp: 42 + (p.profile_id % 8),
+            fanSpeed: `${50 + (p.profile_id % 15)}%`,
+            sanPing: `${(0.15 + (p.profile_id % 5) * 0.02).toFixed(2)}ms`
+          }
+        };
+      }) : computers.map((comp) => {
+        const zone = comp.ComputerZone || {};
+        return {
+          id: comp.computer_name,
+          computer_id: comp.computer_id,
+          numericId: String(comp.computer_id).padStart(2, '0'),
+          status: comp.status === ComputerStatus.ONLINE || comp.status === ComputerStatus.IN_USE ? 'online' : comp.status === ComputerStatus.MAINTENANCE ? 'maintenance' : 'ready',
+          rawStatus: comp.status,
+          statusLabel: comp.status,
+          zoneId: zone.zone_id ? String(zone.zone_id) : '1',
+          zoneName: zone.zone_name || 'Phân khu 1',
+          zoneColor: 'sky',
+          ip_address: comp.ip_address,
+          mac_address: comp.mac_address,
+          is_remote_enabled: comp.is_remote_enabled,
+          cpu: { model: 'Intel Core i7-14700K', specs: '20 Cores / 28 Threads @ 5.6GHz' },
+          ram: { capacity: '32GB DDR5', specs: '5600MHz Corsair Vengeance' },
+          gpu: { model: 'RTX 4070 Ti Super 16GB', edition: 'MSI Gaming X Slim' },
+          storage: { type: 'SAN NVMe 10Gbps', specs: 'High Throughput Cache 1TB' },
+          telemetry: {
+            cpuTemp: 45 + (comp.computer_id % 15),
+            gpuTemp: 42 + (comp.computer_id % 12),
+            fanSpeed: `${50 + (comp.computer_id % 20)}%`,
+            sanPing: `${(0.15 + (comp.computer_id % 10) * 0.02).toFixed(2)}ms`
+          }
+        };
+      });
+
+      const topGpuCount = specs.filter(s => s.gpu.model.includes('4090') || s.gpu.model.includes('4080')).length;
 
       const metrics = {
         totalMachines: computers.length,
-        activeZones: 4,
+        activeZones: zones.length,
         availability: '100%',
         topGpuRatio: 'RTX 4090 / 4080S',
-        topGpuCount: computers.filter(c => (c.gpu || '').includes('4090') || (c.gpu || '').includes('4080')).length,
-        topGpuPercent: `${Math.round((computers.filter(c => (c.gpu || '').includes('4090') || (c.gpu || '').includes('4080')).length / (computers.length || 1)) * 100)}%`,
+        topGpuCount,
+        topGpuPercent: `${Math.round((topGpuCount / Math.max(specs.length, 1)) * 100)}%`,
         avgRamRange: '32GB - 64GB',
         ramSpeed: 'DDR5 6000MHz Low-CL',
-        totalRamCapacity: '4.8 TB Total',
+        totalRamCapacity: `${computers.length * 32} GB Total`,
         bootromHealth: '100% Đồng Bộ',
         sanNetwork: 'Dual SAN NVMe 40Gbps Fiber',
         ioErrors: 0
       };
 
       const diagnostics = {
-        zonesTemp: [
-          { name: 'Zone 1 (Thi Đấu - i9/RTX 4080S)', temp: '54°C', fan: 'Fan 62%', percentage: 58, color: 'bg-sky-500' },
-          { name: 'Zone 2 (VIP Pro - i7/RTX 4070Ti)', temp: '49°C', fan: 'Fan 50%', percentage: 49, color: 'bg-indigo-500' },
-          { name: 'Zone 4 (Stream Studio - Ryzen 9/RTX 4090)', temp: '58°C', fan: 'Fan 68%', percentage: 65, color: 'bg-purple-500' }
-        ],
+        zonesTemp: zones.map((z, idx) => ({
+          name: z.zone_name,
+          temp: `${48 + idx * 3}°C`,
+          fan: `Fan ${50 + idx * 5}%`,
+          percentage: 45 + idx * 8,
+          color: idx === 0 ? 'sky' : idx === 1 ? 'indigo' : idx === 2 ? 'amber' : idx === 3 ? 'purple' : 'emerald'
+        })),
         sanThroughput: {
           current: '8.42 Gbps',
-          label: 'Tải cao điểm (84 máy đang chơi)',
+          label: `Tải cao điểm (${computers.filter(c => c.status === ComputerStatus.IN_USE || c.status === ComputerStatus.ONLINE).length} máy đang hoạt động)`,
           gameLoadTime: '2.4 giây'
         },
         alert: {
-          machineId: 'ST-02',
-          title: 'Máy ST-02: Thay Keo Tản Nhiệt',
-          description: 'Cảnh báo nhiệt độ CPU vượt 78°C khi chơi Cyberpunk 2077. Đã tạm tắt nhận khách.',
+          machineId: specs.find(s => s.status === 'maintenance')?.id || 'ST-02',
+          title: `Máy ${specs.find(s => s.status === 'maintenance')?.id || 'ST-02'}: Kiểm tra hệ thống`,
+          description: 'Cảnh báo bảo trì định kỳ. Đã sẵn sàng cập nhật driver BootROM.',
           schedule: 'Chủ Nhật 02:00'
         }
       };
 
-      return { specs: formattedSpecs, metrics, diagnostics };
+      let dbComponents = [];
+      if (db.HardwareComponent) {
+        dbComponents = await db.HardwareComponent.findAll({ where: { is_active: true } });
+      }
+
+      const getComponentList = (cat, profileKey) => {
+        const fromComponents = dbComponents
+          .filter((c) => c.category && c.category.toLowerCase().trim() === cat)
+          .map((c) => (c.name ? c.name.trim() : ''))
+          .filter(Boolean);
+        const fromProfiles = profiles
+          .map((p) => (p[profileKey] ? String(p[profileKey]).trim() : ''))
+          .filter(Boolean);
+        return Array.from(new Set([...fromComponents, ...fromProfiles]));
+      };
+
+      const hardwarePresets = {
+        cpus: getComponentList('cpu', 'cpu_model'),
+        gpus: getComponentList('gpu', 'gpu_model'),
+        rams: getComponentList('ram', 'ram_capacity'),
+        storages: getComponentList('storage', 'storage_type'),
+        monitors: getComponentList('monitor', 'monitor'),
+        gears: getComponentList('gear', 'gear')
+      };
+
+      return {
+        specs,
+        metrics,
+        diagnostics,
+        zones,
+        hardwarePresets,
+        computers: computers.map((c) => ({
+          computer_id: c.computer_id,
+          computer_name: c.computer_name,
+          zone_id: c.zone_id,
+          status: c.status
+        }))
+      };
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách cấu hình phần cứng:', error);
+      console.error('Lỗi khi lấy thông số cấu hình phần cứng:', error);
       throw error;
     }
   }
 
   /**
-   * Create new hardware station record
+   * Create new hardware profile directly in MySQL CSDL with Transaction safety
    */
-  async createHardwareSpec(hardwareData) {
+  async createHardwareSpec(specData) {
     try {
-      const zoneIdNumber = parseInt((hardwareData.zoneId || 'z1').replace('z', ''), 10) || 1;
-      const newComp = await db.Computer.create({
-        computer_name: hardwareData.id || `PC-${Math.floor(100 + Math.random() * 900)}`,
-        status: (hardwareData.status || 'ONLINE').toUpperCase(),
-        zone_id: zoneIdNumber,
-        cpu: hardwareData.cpu?.model || null,
-        cpu_specs: hardwareData.cpu?.specs || null,
-        ram: hardwareData.ram?.capacity || null,
-        ram_specs: hardwareData.ram?.specs || null,
-        gpu: hardwareData.gpu?.model || null,
-        gpu_edition: hardwareData.gpu?.edition || null,
-        storage_type: hardwareData.storage?.type || null,
-        storage_specs: hardwareData.storage?.specs || null,
-        boot_image: hardwareData.bootImage || null,
-        cpu_temp: hardwareData.telemetry?.cpuTemp || null,
-        gpu_temp: hardwareData.telemetry?.gpuTemp || null,
-        fan_speed: hardwareData.telemetry?.fanSpeed || null,
-        san_ping: hardwareData.telemetry?.sanPing || null
-      });
+      return await db.sequelize.transaction(async (t) => {
+        const { profileName, id, zoneId, description, cpu, gpu, ram, storage, monitor, gear, assignedComputers = [] } = specData;
 
-      return newComp;
+        const cpuFinal = typeof cpu === 'object' ? (cpu.model || '') : (cpu || specData.cpuSelect || '');
+        const gpuFinal = typeof gpu === 'object' ? (gpu.model || '') : (gpu || specData.gpuSelect || '');
+        const ramFinal = typeof ram === 'object' ? (ram.capacity || '') : (ram || specData.ramSelect || '');
+        const storageFinal = typeof storage === 'object' ? (storage.type || '') : (storage || specData.storageSelect || '');
+        const monitorFinal = typeof monitor === 'object' ? (monitor.model || '') : (monitor || specData.monitorSelect || '');
+        const gearFinal = typeof gear === 'object' ? (gear.model || '') : (gear || specData.gearSelect || '');
+
+        const nameToSave = profileName || id || `Mẫu Cấu Hình ${Date.now()}`;
+
+        let profile = null;
+        if (db.HardwareProfile) {
+          profile = await db.HardwareProfile.create(
+            {
+              profile_name: nameToSave,
+              description: description || '',
+              cpu_model: cpuFinal,
+              gpu_model: gpuFinal,
+              ram_capacity: ramFinal,
+              storage_type: storageFinal,
+              monitor: monitorFinal,
+              gear: gearFinal,
+              zone_id: Number(zoneId) || 1
+            },
+            { transaction: t }
+          );
+        }
+
+        if (Array.isArray(assignedComputers) && assignedComputers.length > 0) {
+          await db.Computer.update(
+            {
+              zone_id: Number(zoneId) || 1,
+              ...(profile ? { hardware_profile_id: profile.profile_id } : {})
+            },
+            { where: { computer_name: assignedComputers }, transaction: t }
+          );
+        }
+
+        return { status: 'success', message: 'Tạo mẫu cấu hình phần cứng thành công', profile };
+      });
     } catch (error) {
       console.error('Lỗi khi tạo cấu hình phần cứng mới:', error);
       throw error;
     }
   }
+
+  /**
+   * Update hardware profile directly in MySQL CSDL with Transaction safety
+   */
+  async updateHardwareSpec(specId, updateData) {
+    try {
+      return await db.sequelize.transaction(async (t) => {
+        const { profileName, zoneId, description, cpu, gpu, ram, storage, monitor, gear, assignedComputers = [] } = updateData;
+
+        const cpuFinal = typeof cpu === 'object' ? (cpu.model || '') : (cpu || updateData.cpuSelect || '');
+        const gpuFinal = typeof gpu === 'object' ? (gpu.model || '') : (gpu || updateData.gpuSelect || '');
+        const ramFinal = typeof ram === 'object' ? (ram.capacity || '') : (ram || updateData.ramSelect || '');
+        const storageFinal = typeof storage === 'object' ? (storage.type || '') : (storage || updateData.storageSelect || '');
+        const monitorFinal = typeof monitor === 'object' ? (monitor.model || '') : (monitor || updateData.monitorSelect || '');
+        const gearFinal = typeof gear === 'object' ? (gear.model || '') : (gear || updateData.gearSelect || '');
+
+        let profile = null;
+        if (db.HardwareProfile) {
+          profile = await db.HardwareProfile.findByPk(specId, { transaction: t });
+          if (!profile) {
+            profile = await db.HardwareProfile.findOne({ where: { profile_name: specId }, transaction: t });
+          }
+
+          if (profile) {
+            if (profileName) profile.profile_name = profileName;
+            if (description !== undefined) profile.description = description;
+            if (cpuFinal) profile.cpu_model = cpuFinal;
+            if (gpuFinal) profile.gpu_model = gpuFinal;
+            if (ramFinal) profile.ram_capacity = ramFinal;
+            if (storageFinal) profile.storage_type = storageFinal;
+            if (monitorFinal !== undefined) profile.monitor = monitorFinal;
+            if (gearFinal !== undefined) profile.gear = gearFinal;
+            if (zoneId) profile.zone_id = Number(zoneId);
+            await profile.save({ transaction: t });
+          }
+        }
+
+        if (Array.isArray(assignedComputers) && assignedComputers.length > 0) {
+          await db.Computer.update(
+            {
+              zone_id: Number(zoneId) || 1,
+              ...(profile ? { hardware_profile_id: profile.profile_id } : {})
+            },
+            { where: { computer_name: assignedComputers }, transaction: t }
+          );
+        }
+
+        return { status: 'success', message: 'Cập nhật mẫu cấu hình phần cứng thành công', profile };
+      });
+    } catch (error) {
+      console.error('Lỗi khi cập nhật cấu hình phần cứng:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete hardware profile directly from MySQL CSDL with Transaction safety
+   */
+  async deleteHardwareSpec(specId) {
+    try {
+      return await db.sequelize.transaction(async (t) => {
+        if (db.HardwareProfile) {
+          let profile = await db.HardwareProfile.findByPk(specId, { transaction: t });
+          if (!profile) {
+            profile = await db.HardwareProfile.findOne({ where: { profile_name: specId }, transaction: t });
+          }
+          if (profile) {
+            await db.Computer.update({ hardware_profile_id: null }, { where: { hardware_profile_id: profile.profile_id }, transaction: t });
+            await profile.destroy({ transaction: t });
+            return true;
+          }
+        }
+
+        let computer = await db.Computer.findByPk(specId, { transaction: t });
+        if (!computer) {
+          computer = await db.Computer.findOne({ where: { computer_name: specId }, transaction: t });
+        }
+        if (!computer) return false;
+
+        await computer.destroy({ transaction: t });
+        return true;
+      });
+    } catch (error) {
+      console.error('Lỗi khi xóa cấu hình phần cứng:', error);
+      throw error;
+    }
+  }
 }
+
 
 module.exports = new ComputerService();

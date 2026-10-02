@@ -1,52 +1,63 @@
 import React from 'react';
-import { Eye, Edit, Trash2, MoreVertical, HardDrive, Cpu, AlertTriangle, CheckCircle, PowerOff, Wrench } from 'lucide-react';
+import { Eye, Edit, HardDrive, Cpu, AlertTriangle, CheckCircle, PowerOff, Wrench } from 'lucide-react';
 
 /**
  * Status Badge Helper
+ * Aligned 100% with backend ComputerStatus enum
  */
 function StatusBadge({ status, statusLabel }) {
-  if (status === 'online') {
+  const statusUpper = String(status || '').toUpperCase();
+
+  if (statusUpper === 'ONLINE' || status === 'online') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0fdf4] text-[#15803d] rounded-full font-mono text-[11px] font-bold">
-        <span className="h-2 w-2 rounded-full bg-[#16a34a]"></span>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0fdf4] text-[#15803d] border border-emerald-200 rounded-full font-mono text-[11px] font-bold">
+        <span className="h-2 w-2 rounded-full bg-[#16a34a] animate-pulse"></span>
         {statusLabel || 'Online (Sẵn sàng)'}
       </span>
     );
   }
-  if (status === 'in-use') {
+  if (statusUpper === 'IN_USE' || status === 'in-use') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-full font-mono text-[11px] font-bold">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f0f9ff] text-[#0369a1] border border-sky-200 rounded-full font-mono text-[11px] font-bold">
         <span className="h-2 w-2 rounded-full bg-[#0284c7]"></span>
         {statusLabel || 'Đang sử dụng'}
       </span>
     );
   }
-  if (status === 'reserved') {
+  if (statusUpper === 'MAINTENANCE' || status === 'maintenance') {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#faf5ff] text-[#7e22ce] rounded-full font-mono text-[11px] font-bold">
-        <span className="h-2 w-2 rounded-full bg-[#9333ea]"></span>
-        {statusLabel || 'Đặt trước'}
-      </span>
-    );
-  }
-  if (status === 'maintenance') {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#fff1f2] text-[#be123c] rounded-full font-mono text-[11px] font-bold">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#fff1f2] text-[#be123c] border border-rose-200 rounded-full font-mono text-[11px] font-bold">
         <span className="h-2 w-2 rounded-full bg-[#e11d48]"></span>
         {statusLabel || 'Bảo trì'}
       </span>
     );
   }
+  if (statusUpper === 'LOCKED' || status === 'locked') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 rounded-full font-mono text-[11px] font-bold border border-amber-200">
+        <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+        {statusLabel || 'Tạm khóa'}
+      </span>
+    );
+  }
+  if (statusUpper === 'REMOTE' || status === 'remote') {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 text-sky-900 rounded-full font-mono text-[11px] font-bold border border-sky-200">
+        <span className="h-2 w-2 rounded-full bg-sky-500"></span>
+        {statusLabel || 'Cloud Remote'}
+      </span>
+    );
+  }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f8fafc] text-[#475569] rounded-full font-mono text-[11px] font-bold">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f8fafc] text-[#475569] rounded-full font-mono text-[11px] font-bold border border-slate-200">
       <span className="h-2 w-2 rounded-full bg-[#64748b]"></span>
-      {statusLabel || 'Offline'}
+      {statusLabel || 'Offline (Tắt nguồn)'}
     </span>
   );
 }
 
 /**
- * MachineTable component displaying complete fleet list
+ * MachineTable component displaying complete fleet list populated directly from CSDL
  */
 export default function MachineTable({
   machines = [],
@@ -74,9 +85,9 @@ export default function MachineTable({
                   id="selectAllCheckbox"
                 />
               </th>
-              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[170px]">PC ID / Địa Chỉ IP</th>
-              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[140px]">Phân Khu (Zone)</th>
-              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[280px] max-w-[320px]">Cấu Hình Phần Cứng &amp; BootROM</th>
+              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[200px]">PC ID / IP & MAC Address</th>
+              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[160px]">Phân Khu &amp; Giá Tiền</th>
+              <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[300px] max-w-[340px]">Cấu Hình Phần Cứng &amp; BootROM</th>
               <th className="py-3.5 px-4 font-extrabold text-slate-800 min-w-[200px]">Người Dùng / Phiên Hoạt Động</th>
               <th className="py-3.5 px-4 font-extrabold text-slate-800 text-center min-w-[170px] whitespace-nowrap">TRẠNG THÁI</th>
               <th className="py-3.5 px-4 font-extrabold text-slate-800 text-right pr-6 min-w-[150px] whitespace-nowrap">HÀNH ĐỘNG</th>
@@ -85,6 +96,7 @@ export default function MachineTable({
           <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
             {machines.map((m) => {
               const isSelected = selectedIds.includes(m.id);
+              const statusUpper = String(m.status || '').toUpperCase();
 
               return (
                 <tr
@@ -105,11 +117,11 @@ export default function MachineTable({
                     />
                   </td>
 
-                  {/* PC ID / IP with vertical centering */}
+                  {/* PC ID / IP & MAC Address */}
                   <td className="py-4 px-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-sky-100/90 border border-sky-200 flex items-center justify-center text-sky-900 font-mono text-xs font-extrabold shadow-2xs shrink-0">
-                        {m.numericId || m.id.split('-')[1] || '00'}
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-mono text-xs font-extrabold shadow-sm shrink-0">
+                        {m.numericId || String(m.computer_id || '00').padStart(2, '0')}
                       </div>
                       <div className="flex flex-col justify-center">
                         <span className="text-sm font-extrabold text-slate-900 leading-tight" title={m.id}>
@@ -118,61 +130,74 @@ export default function MachineTable({
                         <span className="font-mono text-[11px] text-slate-600 flex items-center gap-1 mt-0.5 font-medium">
                           <span
                             className={`h-1.5 w-1.5 rounded-full shrink-0 ${
-                              m.status === 'online'
+                              statusUpper === 'ONLINE'
                                 ? 'bg-emerald-500'
-                                : m.status === 'in-use'
+                                : statusUpper === 'IN_USE'
                                 ? 'bg-sky-500'
-                                : m.status === 'maintenance'
+                                : statusUpper === 'MAINTENANCE'
                                 ? 'bg-rose-500'
+                                : statusUpper === 'LOCKED'
+                                ? 'bg-amber-500'
                                 : 'bg-slate-400'
                             }`}
                           ></span>
-                          {m.ip} • {m.port}
+                          {m.ip || '192.168.1.100'}
+                        </span>
+                        <span className="font-mono text-[10px] text-slate-400 font-normal">
+                          MAC: {m.mac_address || 'F4:D4:88:5A:00:00'}
                         </span>
                       </div>
                     </div>
                   </td>
 
-                  {/* Zone */}
+                  {/* Zone & Hourly Price */}
                   <td className="py-4 px-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-900 border border-slate-300/80 text-xs font-bold rounded-md">
-                      <span className="material-symbols-outlined text-[15px] text-sky-700">
-                        {m.zoneIcon || 'grid_view'}
+                    <div className="flex flex-col gap-1">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-900 border border-slate-300/80 text-xs font-bold rounded-md">
+                        <span className="material-symbols-outlined text-[15px] text-sky-700">
+                          {m.zoneIcon || 'grid_view'}
+                        </span>
+                        {m.zoneName}
                       </span>
-                      {m.zoneName}
-                    </span>
+                      <span className="text-[11px] font-mono text-emerald-600 font-extrabold">
+                        {m.price_per_hour ? `${m.price_per_hour.toLocaleString()}đ/h` : '10.000đ/h'}
+                      </span>
+                    </div>
                   </td>
 
-                  {/* Hardware & BootROM with max-width and high contrast tags */}
-                  <td className="py-4 px-4 max-w-[320px]">
-                    <div className="flex flex-col gap-1.5 max-w-[300px]">
+                  {/* Hardware & BootROM */}
+                  <td className="py-4 px-4 max-w-[340px]">
+                    <div className="flex flex-col gap-1.5 max-w-[320px]">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* CPU Badge - High contrast */}
+                        {/* CPU Badge */}
                         <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 bg-slate-200 text-slate-900 border border-slate-300 rounded-md shadow-2xs shrink-0">
                           <Cpu className="w-3 h-3 text-slate-700" />
                           {m.cpu}
                         </span>
 
-                        {/* GPU Badge - High contrast */}
+                        {/* GPU Badge */}
                         <span className="inline-flex items-center gap-1 text-[11px] font-mono font-extrabold px-2 py-0.5 bg-sky-100 text-sky-950 border border-sky-300 rounded-md shadow-2xs shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span>
                           {m.gpu}
                         </span>
 
-                        {/* RAM Badge - High contrast */}
+                        {/* RAM Badge */}
                         <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 bg-indigo-100 text-indigo-950 border border-indigo-300 rounded-md shadow-2xs shrink-0">
                           {m.ram}
                         </span>
                       </div>
 
+                      {/* Hardware Spec Description */}
+                      {m.specDescription && (
+                        <div className="text-[10px] text-slate-500 font-medium truncate" title={m.specDescription}>
+                          {m.specDescription}
+                        </div>
+                      )}
+
                       {/* BootROM Image Status */}
-                      <div className={`text-[11px] font-mono flex items-center gap-1.5 ${m.isWarningImage ? 'text-rose-700 font-bold' : 'text-slate-600'}`}>
-                        {m.isWarningImage ? (
-                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                        ) : (
-                          <HardDrive className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                        )}
-                        <span className="truncate max-w-[260px]" title={m.bootImage}>
+                      <div className="text-[11px] font-mono flex items-center gap-1.5 text-slate-600">
+                        <HardDrive className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <span className="truncate max-w-[280px]" title={m.bootImage}>
                           BootROM: {m.bootImage}
                         </span>
                       </div>
@@ -204,7 +229,7 @@ export default function MachineTable({
                           </div>
                         </div>
                       </div>
-                    ) : m.status === 'online' ? (
+                    ) : statusUpper === 'ONLINE' || m.status === 'online' ? (
                       <div className="flex items-center gap-1.5 text-emerald-800">
                         <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                         <div className="flex flex-col">
@@ -212,7 +237,7 @@ export default function MachineTable({
                           <span className="text-[11px] text-slate-600">{m.cleanStatus}</span>
                         </div>
                       </div>
-                    ) : m.status === 'offline' ? (
+                    ) : statusUpper === 'OFFLINE' || m.status === 'offline' ? (
                       <div className="flex items-center gap-1.5 text-slate-600">
                         <PowerOff className="w-4 h-4 text-slate-400 shrink-0" />
                         <div className="flex flex-col">
@@ -237,12 +262,12 @@ export default function MachineTable({
                   </td>
 
                   {/* Actions */}
-                  <td className="py-4 px-4 text-right pr-6 min-w-[150px] whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className="py-4 px-4 text-right pr-6 min-w-[110px] whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"
                         onClick={() => onLiveMirror && onLiveMirror(m.id)}
-                        className="w-8 h-8 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        className="w-8 h-8 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
                         title="Xem màn hình từ xa (Live Mirror)"
                       >
                         <Eye className="w-4 h-4" />
@@ -250,28 +275,11 @@ export default function MachineTable({
 
                       <button
                         type="button"
-                        onClick={() => onEdit && onEdit(m.id)}
-                        className="w-8 h-8 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        onClick={() => onEdit && onEdit(m)}
+                        className="w-8 h-8 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
                         title="Chỉnh sửa thông số / Cấu hình"
                       >
                         <Edit className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onDelete && onDelete(m.id)}
-                        className="w-8 h-8 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
-                        title="Hủy đăng ký / Xóa máy"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
-                        title="Tác vụ nâng cao"
-                      >
-                        <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

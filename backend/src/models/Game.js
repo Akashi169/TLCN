@@ -1,13 +1,48 @@
-module.exports = (sequelize, DataTypes) => {
-    const Game = sequelize.define('Game', {
-        game_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-        name: { type: DataTypes.STRING(100), allowNull: false },
-        category_id: { type: DataTypes.INTEGER, allowNull: false }
-    }, { tableName: 'game', timestamps: false });
+const { Model, DataTypes } = require('sequelize');
 
-    Game.associate = (models) => {
-        Game.belongsTo(models.GameCategory, { foreignKey: 'category_id' });
-        Game.belongsToMany(models.Computer, { through: 'computer_game', foreignKey: 'game_id' });
-    };
-    return Game;
+class Game extends Model {
+  updateInfo(name, image) {
+    this.name = name;
+    this.cover_image_url = image;
+    return this.save();
+  }
+
+  updatePath(newPath) {
+    this.executable_path = newPath;
+    return this.save();
+  }
+
+  toggleAvailability() {
+    this.is_available = !this.is_available;
+    return this.save();
+  }
+
+  async getCategory() {
+    const GameCategory = this.sequelize.models.GameCategory;
+    return await GameCategory.findByPk(this.category_id);
+  }
+}
+
+module.exports = (sequelize) => {
+  Game.init({
+    game_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING(100), allowNull: false },
+    cover_image_url: { type: DataTypes.STRING(255) },
+    executable_path: { type: DataTypes.STRING(255) },
+    is_remote_supported: { type: DataTypes.BOOLEAN, defaultValue: false },
+    is_available: { type: DataTypes.BOOLEAN, defaultValue: true },
+    category_id: { type: DataTypes.INTEGER, allowNull: false }
+  }, {
+    sequelize,
+    modelName: 'Game',
+    tableName: 'game',
+    timestamps: false
+  });
+
+  Game.associate = (models) => {
+    Game.belongsTo(models.GameCategory, { foreignKey: 'category_id' });
+    Game.belongsToMany(models.Computer, { through: models.ComputerGame, foreignKey: 'game_id' });
+  };
+
+  return Game;
 };

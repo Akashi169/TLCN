@@ -85,9 +85,18 @@ export const apiClient = {
     });
   },
 
+  patch(endpoint, body, headers = {}) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(body),
+    });
+  },
+
   delete(endpoint, headers = {}) {
     return this.request(endpoint, { method: 'DELETE', headers });
   },
 };
+
 
 export default apiClient;

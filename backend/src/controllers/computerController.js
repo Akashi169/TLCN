@@ -1,4 +1,5 @@
 const computerService = require('../services/computerService');
+<<<<<<< HEAD
 const computerSocketService = require('../services/computerSocketService');
 const machineStore = require('../stores/machineStore');
 
@@ -9,6 +10,100 @@ const machineStore = require('../stores/machineStore');
 class ComputerController {
 
   // GET /api/computers
+=======
+const stationControlService = require('../services/stationControlService');
+
+/**
+ * ComputerController
+ * Handles HTTP requests and delegates logic to specialized Services (SRP & Clean Code)
+ */
+class ComputerController {
+  async getRoomLayoutGrid(req, res, next) {
+    try {
+      const gridData = await computerService.getRoomLayoutGrid();
+      return res.json({
+        status: 'success',
+        data: gridData,
+        message: 'Lấy dữ liệu sơ đồ phòng máy thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getZones(req, res, next) {
+    try {
+      const zones = await computerService.getAllZones();
+      return res.json({
+        status: 'success',
+        data: zones,
+        message: 'Lấy danh sách phân khu máy trạm thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async changeStatus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { status, member_id, notes } = req.body;
+      const updatedStation = await stationControlService.changeStatus(id, status, member_id, notes);
+      return res.json({
+        status: 'success',
+        data: updatedStation,
+        message: `Đổi trạng thái trạm máy thành ${status} thành công`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async switchStation(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { target_computer_id, member_id } = req.body;
+      const result = await stationControlService.switchStation(id, target_computer_id, member_id);
+      return res.json({
+        status: 'success',
+        data: result,
+        message: 'Chuyển trạm máy thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async wakeOnLan(req, res, next) {
+    try {
+      const { zone_id } = req.body;
+      const result = await stationControlService.wakeOnLan(zone_id);
+      return res.json({
+        status: 'success',
+        data: result,
+        message: result.message
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getBootromLogs(req, res, next) {
+    try {
+      const { computer_id } = req.query;
+      const logs = await stationControlService.getBootromLogs(computer_id);
+      return res.json({
+        status: 'success',
+        data: logs,
+        message: 'Lấy nhật ký kết nối Bootrom thành công'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+>>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
   async getComputers(req, res, next) {
     try {
       const computers = await computerService.getAllComputers();
@@ -149,6 +244,7 @@ class ComputerController {
     }
   }
 
+<<<<<<< HEAD
 
   // POST /api/machines/:machineId/login
   async login(req, res, next) {
@@ -184,12 +280,29 @@ class ComputerController {
       return res.json({
         success: true,
         message: `Login request sent to ${machineId}`
+=======
+  async updateHardwareSpec(req, res, next) {
+    try {
+      const { id } = req.params;
+      const updated = await computerService.updateHardwareSpec(id, req.body);
+      if (!updated) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Không tìm thấy máy trạm để cập nhật cấu hình'
+        });
+      }
+      return res.json({
+        status: 'success',
+        data: updated,
+        message: 'Cập nhật cấu hình máy thành công'
+>>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
       });
     } catch (error) {
       next(error);
     }
   }
 
+<<<<<<< HEAD
 
   // POST /api/machines/:machineId/logout
   async logout(req, res, next) {
@@ -358,6 +471,21 @@ class ComputerController {
       return res.status(400).json({
         error:
           'Invalid broadcast request parameters'
+=======
+  async deleteHardwareSpec(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await computerService.deleteHardwareSpec(id);
+      if (!deleted) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Không tìm thấy máy trạm để xóa cấu hình'
+        });
+      }
+      return res.json({
+        status: 'success',
+        message: 'Xóa cấu hình máy thành công'
+>>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
       });
     } catch (error) {
       next(error);
@@ -365,4 +493,9 @@ class ComputerController {
   }
 }
 
+<<<<<<< HEAD
 module.exports = new ComputerController();
+=======
+module.exports = new ComputerController();
+
+>>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99

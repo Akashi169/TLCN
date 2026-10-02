@@ -16,6 +16,8 @@ const computerRoutes = require('./src/routes/computerRoutes');
 const promotionRoutes = require('./src/routes/promotionRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
 const { initSocket } = require('./src/sockets');
+const healthRoutes = require('./src/routes/healthRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
 
 const errorHandler = require('./src/middleware/errorHandler');
 const computerSocketService = require('./src/services/computerSocketService');
@@ -27,6 +29,10 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Health Check Endpoint (dùng cho Load Balancer & Monitoring System)
+app.use('/health', healthRoutes);
+app.use('/api/health', healthRoutes);
+
 // Basic Route
 app.get('/', (req, res) => {
   res.json({ status: 'success', message: 'Welcome to NEXUS Cloud Cyber OS API!' });
@@ -36,6 +42,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/computers', computerRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/transactions', transactionRoutes);

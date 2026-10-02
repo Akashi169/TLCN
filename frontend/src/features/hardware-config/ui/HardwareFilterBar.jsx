@@ -12,7 +12,8 @@ export default function HardwareFilterBar({
   statusFilter = 'all',
   onStatusChange,
   onExportReport,
-  onOpenCreateModal
+  onOpenCreateModal,
+  zones = []
 }) {
   return (
     <div className="flex flex-col gap-4 bg-white p-4 sm:p-5 rounded-xl shadow-xs border border-slate-200/90">
@@ -42,11 +43,21 @@ export default function HardwareFilterBar({
               className="px-3 py-2 bg-slate-50 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 focus:outline-none focus:bg-white focus:ring-2 focus:ring-sky-500/30 cursor-pointer transition-all pr-8 appearance-none"
             >
               <option value="all">Tất cả phân khu (All Zones)</option>
-              <option value="z1">Zone 1 - Thi Đấu Esports</option>
-              <option value="z2">Zone 2 - VIP Gaming Pro</option>
-              <option value="z3">Zone 3 - Standard Combat</option>
-              <option value="z4">Zone 4 - Stream Studio</option>
-              <option value="z5">Zone 5 - Cloud Host</option>
+              {zones.length > 0 ? (
+                zones.map((z) => (
+                  <option key={z.zone_id} value={String(z.zone_id)}>
+                    {z.zone_name}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="1">Zone 1 - Thi Đấu Esports</option>
+                  <option value="2">Zone 2 - VIP Gaming Pro</option>
+                  <option value="3">Zone 3 - Standard Combat</option>
+                  <option value="4">Zone 4 - Stream Studio</option>
+                  <option value="5">Zone 5 - Cloud Host</option>
+                </>
+              )}
             </select>
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
@@ -84,7 +95,7 @@ export default function HardwareFilterBar({
             className="flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-extrabold rounded-lg text-xs shadow-xs transition-all"
           >
             <PlusCircle className="w-4 h-4 text-white" />
-            <span>+ Thêm Máy Mới</span>
+            <span>+ Tạo Mẫu Cấu Hình</span>
           </button>
         </div>
       </div>
