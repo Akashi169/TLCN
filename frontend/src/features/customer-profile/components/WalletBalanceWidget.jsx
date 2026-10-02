@@ -7,13 +7,13 @@ import { Wallet, ArrowRight, PlusCircle, History } from 'lucide-react';
  */
 export default function WalletBalanceWidget({ balances }) {
   const formatVnd = (amount) => {
-    const val = amount !== undefined && amount !== null ? parseFloat(amount) : 500000;
+    const val = amount !== undefined && amount !== null && !isNaN(Number(amount)) ? Number(amount) : 0;
     return new Intl.NumberFormat('vi-VN').format(val) + ' đ';
   };
 
   const realBalanceStr = formatVnd(balances?.real_balance);
-  const bonusBalanceStr = formatVnd(balances?.bonus_balance !== undefined ? balances.bonus_balance : 50000);
-  const points = balances?.points !== undefined ? balances.points : 100;
+  const bonusBalanceStr = formatVnd(balances?.bonus_balance);
+  const points = balances?.points !== undefined && balances?.points !== null && !isNaN(Number(balances.points)) ? Number(balances.points) : 0;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col gap-4">

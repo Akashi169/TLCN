@@ -25,6 +25,7 @@ export default function CustomerProfileView({ user, memberId }) {
     saving,
     message,
     error,
+    isDirty,
     handleAccountFormChange,
     handleCloudPrefChange,
     handleAvatarChange,
@@ -130,7 +131,7 @@ export default function CustomerProfileView({ user, memberId }) {
             />
 
             {/* Bottom Form Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className={`flex items-center justify-end gap-3 pt-4 border-t border-slate-100 transition-all duration-300 ${isDirty ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden pt-0 border-transparent'}`}>
               <button
                 type="button"
                 onClick={() => window.location.reload()}

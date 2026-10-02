@@ -47,9 +47,9 @@ export default function CustomerHeader({ user, onLogout }) {
             className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer group focus:outline-none"
             title="Tùy chọn tài khoản khách hàng"
           >
-            <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-sm flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-8.5 h-8.5 rounded-full overflow-hidden shrink-0 bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-sm flex items-center justify-center text-white relative group-hover:scale-105 transition-transform">
               {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="User Avatar" className="w-full h-full rounded-full object-cover" />
+                <img src={user.avatar_url} alt="User Avatar" className="w-full h-full max-w-full max-h-full rounded-full object-cover block" />
               ) : (
                 <User className="w-4.5 h-4.5 text-white" />
               )}
@@ -71,9 +71,9 @@ export default function CustomerHeader({ user, onLogout }) {
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               {/* Header Info Inside Dropdown */}
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/70 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-xs shrink-0">
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-xs relative">
                   {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                    <img src={user.avatar_url} alt="Avatar" className="w-full h-full max-w-full max-h-full rounded-full object-cover block" />
                   ) : (
                     <User className="w-5 h-5 text-white m-auto" />
                   )}

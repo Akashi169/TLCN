@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+/* eslint-env node */
 module.exports = {
   content: [
     "./index.html",
@@ -6,6 +7,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      spacing: {
+        '4.5': '1.125rem',
+        '5.5': '1.375rem',
+        '6.5': '1.625rem',
+        '7.5': '1.875rem',
+        '8.5': '2.125rem',
+      },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
       },

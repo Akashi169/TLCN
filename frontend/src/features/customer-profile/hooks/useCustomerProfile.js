@@ -86,6 +86,11 @@ export function useCustomerProfile(memberId) {
     }
   };
 
+  const isDirty = profile ? (
+    formData.full_name !== profile.full_name ||
+    formData.phone !== (profile.phone || '')
+  ) : false;
+
   return {
     profile,
     formData,
@@ -93,6 +98,7 @@ export function useCustomerProfile(memberId) {
     saving,
     message,
     error,
+    isDirty,
     handleAccountFormChange,
     handleAvatarChange,
     handleSaveProfile
