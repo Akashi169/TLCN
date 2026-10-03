@@ -1,8 +1,8 @@
 const machineStore = require('../stores/machineStore');
-
+const Computer = require('../models/Computer');
 const HEARTBEAT_TIMEOUT_MS = 15000;
 const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
-
+const ComputerStatus = require('../constants/enums').ComputerStatus;
 function registerMachineSocket(io) {
 
     function broadcastUpdate() {
@@ -46,7 +46,7 @@ function registerMachineSocket(io) {
         // 1. Agent Registration
         // ========================================
 
-        socket.on('register', (data) => {
+        socket.on('register', async (data) => {
             if (!data || !data.machineId) {
                 console.warn(`[Socket.IO] Invalid register payload from socket ${socket.id}`);
                 return;
@@ -66,7 +66,18 @@ function registerMachineSocket(io) {
             if (!machine) {
                 return;
             }
-
+            const computer = await Computer.findOne({
+                where: {
+                    [Op.or]: [
+                        { ip_address: data.localIp },
+                        { mac_address: data.macAddress }
+                    ]
+                }
+            });
+            if (computer) {
+                computer.status = data.status || ComputerStatus.ONLINE;
+                await computer.save();
+            }
             socket.join(
                 `machine:${data.machineId}`
             );
@@ -104,7 +115,7 @@ function registerMachineSocket(io) {
         // 3. Status Update
         // ========================================
 
-        socket.on('status:update', (data) => {
+        socket.on('status:update', async (data) => {
             if (!data || !data.machineId) return;
 
             console.log(
@@ -117,7 +128,18 @@ function registerMachineSocket(io) {
                 socket.id,
                 data
             );
-            
+            const computer = await Computer.findOne({
+                where: {
+                    [Op.or]: [
+                        { ip_address: data.localIp },
+                        { mac_address: data.macAddress }
+                    ]
+                }
+            });
+            if (computer) {
+                computer.status = data.status || ComputerStatus.ONLINE;
+                await computer.save();
+            }
 
             if (updated) {
                 broadcastUpdate();
@@ -129,7 +151,7 @@ function registerMachineSocket(io) {
         // 4. Login ACK
         // ========================================
 
-        socket.on('login:ack', (data) => {
+        socket.on('login:ack', async (data) => {
             if (!data || !data.machineId) return;
 
             console.log(
@@ -155,7 +177,18 @@ function registerMachineSocket(io) {
                     machine.currentUser =
                         data.username;
                     machine.lastStatusChange = new Date().toISOString();
-
+                    const computer = await Computer.findOne({
+                        where: {
+                            [Op.or]: [
+                                { ip_address: data.localIp },
+                                { mac_address: data.macAddress }
+                            ]
+                        }
+                    });
+                    if (computer) {
+                        computer.status = ComputerStatus.IN_USE;
+                        await computer.save();
+                    }
                     broadcastUpdate();
                 }
             }
@@ -166,7 +199,7 @@ function registerMachineSocket(io) {
         // 5. Logout ACK
         // ========================================
 
-        socket.on('logout:ack', (data) => {
+        socket.on('logout:ack', async (data) => {
             if (!data || !data.machineId) return;
 
             console.log(
@@ -184,7 +217,19 @@ function registerMachineSocket(io) {
 
                 // Chỉ cho phép cập nhật nếu ACK gửi từ đúng socket hiện tại của machine
                 if (machine && machine.socketId === socket.id) {
-                    machine.status = 'ONLINE';
+                    const computer = await Computer.findOne({
+                        where: {
+                            [Op.or]: [
+                                { ip_address: data.localIp },
+                                { mac_address: data.macAddress }
+                            ]
+                        }
+                    });
+                    if (computer) {
+                        computer.status = ComputerStatus.ONLINE;
+                        await computer.save();
+                    }
+                    machine.status = ComputerStatus.ONLINE;
                     machine.currentUser = null;
                     machine.lastStatusChange = new Date().toISOString();
 
@@ -198,7 +243,7 @@ function registerMachineSocket(io) {
         // 6. Command ACK
         // ========================================
 
-        socket.on('command:ack', (data) => {
+        socket.on('command:ack', async (data) => {
             if (!data) return;
 
             console.log(
@@ -215,7 +260,7 @@ function registerMachineSocket(io) {
         // 7. Disconnect
         // ========================================
 
-        socket.on('disconnect', (reason) => {
+        socket.on('disconnect', async (reason) => {
 
             console.log(
                 `[Socket.IO] Connection closed: ${socket.id} (Reason: ${reason})`
@@ -232,7 +277,18 @@ function registerMachineSocket(io) {
                     `[Socket.IO] Machine marked OFFLINE: ` +
                     `${disconnected.machineId}`
                 );
-
+                const computer = await Computer.findOne({
+                    where: {
+                        [Op.or]: [
+                            { ip_address: disconnected.machine.localIp },
+                            { mac_address: disconnected.machine.macAddress }
+                        ]
+                    }
+                }); 
+                if (computer) {
+                    computer.status = ComputerStatus.OFFLINE;
+                    await computer.save();
+                }
                 broadcastUpdate();
             }
         });
