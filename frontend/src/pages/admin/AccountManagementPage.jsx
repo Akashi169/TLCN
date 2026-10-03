@@ -14,7 +14,7 @@ import MemberPagination from '../../features/members/ui/MemberPagination';
 import CreateMemberModal from '../../features/members/ui/CreateMemberModal';
 import EditMemberModal from '../../features/members/ui/EditMemberModal';
 import MemberDetailModal from '../../features/members/ui/MemberDetailModal';
-
+import { useMachines } from '../../shared/hooks/useMachines';
 /**
  * AccountManagementPage (Quản lý Hội viên Cyber)
  * Built with FSD Architecture, Clean Code & DRY Principles
@@ -51,7 +51,7 @@ export default function AccountManagementPage({ user, onLogout }) {
   useEffect(() => {
     fetchMemberData();
   }, []);
-
+  const { data: machines = {} } = useMachines();
   // Filtered members calculation
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {

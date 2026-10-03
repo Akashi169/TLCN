@@ -117,6 +117,7 @@ function registerMachineSocket(io) {
                 socket.id,
                 data
             );
+            
 
             if (updated) {
                 broadcastUpdate();

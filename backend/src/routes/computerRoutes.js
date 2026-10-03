@@ -1,22 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const computerController = require('../controllers/computerController');
-<<<<<<< HEAD
 router.post(
     '/commands/broadcast',
     computerController.broadcastCommand
 );
-=======
 
 router.get('/grid', computerController.getRoomLayoutGrid);
 router.get('/zones', computerController.getZones);
 router.get('/bootrom-logs', computerController.getBootromLogs);
 router.post('/wake-on-lan', computerController.wakeOnLan);
+router.get('/machinestore',
+    computerController.getMachines);
 router.patch('/:id/status', computerController.changeStatus);
 router.post('/:id/switch', computerController.switchStation);
 
 
->>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
 router.get('/specs', computerController.getHardwareSpecs);
 router.post('/specs', computerController.createHardwareSpec);
 router.put('/specs/:id', computerController.updateHardwareSpec);
@@ -48,6 +47,7 @@ router.post(
     "/:machineId/notification",
     computerController.sendNotification
 );
+
 
 
 module.exports = router;

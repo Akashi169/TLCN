@@ -174,6 +174,7 @@ class MachineStore {
                 if (now - lastHeartbeatTime > timeoutMs) {
                     machine.previousStatus = machine.status;
                     machine.status = 'OFFLINE';
+                    machine.performance = null;
                     machine.disconnectedAt = new Date().toISOString();
 
                     this.machines.set(machineId, machine);

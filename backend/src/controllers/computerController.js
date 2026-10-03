@@ -1,18 +1,7 @@
 const computerService = require('../services/computerService');
-<<<<<<< HEAD
+const stationControlService = require('../services/stationControlService');
 const computerSocketService = require('../services/computerSocketService');
 const machineStore = require('../stores/machineStore');
-
-/**
- * ComputerController
- * Handles HTTP requests and delegates business logic to services.
- */
-class ComputerController {
-
-  // GET /api/computers
-=======
-const stationControlService = require('../services/stationControlService');
-
 /**
  * ComputerController
  * Handles HTTP requests and delegates logic to specialized Services (SRP & Clean Code)
@@ -103,7 +92,6 @@ class ComputerController {
   }
 
 
->>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
   async getComputers(req, res, next) {
     try {
       const computers = await computerService.getAllComputers();
@@ -244,7 +232,6 @@ class ComputerController {
     }
   }
 
-<<<<<<< HEAD
 
   // POST /api/machines/:machineId/login
   async login(req, res, next) {
@@ -280,7 +267,11 @@ class ComputerController {
       return res.json({
         success: true,
         message: `Login request sent to ${machineId}`
-=======
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   async updateHardwareSpec(req, res, next) {
     try {
       const { id } = req.params;
@@ -295,14 +286,12 @@ class ComputerController {
         status: 'success',
         data: updated,
         message: 'Cập nhật cấu hình máy thành công'
->>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
       });
     } catch (error) {
       next(error);
     }
   }
 
-<<<<<<< HEAD
 
   // POST /api/machines/:machineId/logout
   async logout(req, res, next) {
@@ -345,7 +334,7 @@ class ComputerController {
           error: 'Command is required'
         });
       }
-      console.log("MAchineID" + machineId);
+      console.log("MachineID " + machineId);
       const machine = machineStore.get(machineId);
 
       if (!machine || !machine.socketId) {
@@ -471,7 +460,11 @@ class ComputerController {
       return res.status(400).json({
         error:
           'Invalid broadcast request parameters'
-=======
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   async deleteHardwareSpec(req, res, next) {
     try {
       const { id } = req.params;
@@ -485,7 +478,18 @@ class ComputerController {
       return res.json({
         status: 'success',
         message: 'Xóa cấu hình máy thành công'
->>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getMachines(req, res, next) {
+    try {
+      const machines = machineStore.getAll();
+      return res.json({
+        status: 'success',
+        data: machines,
+        message: 'Lấy danh sách máy trạm đang kết nối thành công'
       });
     } catch (error) {
       next(error);
@@ -493,9 +497,4 @@ class ComputerController {
   }
 }
 
-<<<<<<< HEAD
 module.exports = new ComputerController();
-=======
-module.exports = new ComputerController();
-
->>>>>>> 8804625cbffc7960a2a54c665a6b148fb9bf2b99
